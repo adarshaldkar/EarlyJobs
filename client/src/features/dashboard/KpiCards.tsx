@@ -11,7 +11,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ summary, isLoading }) => {
   const cards = [
     {
       title: 'Total Candidates',
-      value: summary?.totalCandidates ?? 0,
+      value: summary?.totalCandidates ?? summary?.total ?? 0,
       description: 'Total applicants registered in ATS',
       icon: Users,
       testId: 'kpi-total-candidates'
@@ -25,7 +25,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ summary, isLoading }) => {
     },
     {
       title: 'In Interview',
-      value: summary?.inInterview ?? 0,
+      value: summary?.inInterview ?? summary?.interviewing ?? 0,
       description: 'Scheduled for interview stages',
       icon: PhoneCall,
       testId: 'kpi-in-interview'

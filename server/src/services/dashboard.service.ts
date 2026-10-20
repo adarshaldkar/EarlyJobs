@@ -2,8 +2,10 @@ import { Candidate, HIRING_STAGES, HiringStage } from '../models/Candidate.js';
 
 export interface DashboardSummary {
   total: number;
+  totalCandidates: number;
   activePipeline: number;
   interviewing: number;
+  inInterview: number;
   hired: number;
   rejected: number;
   stageCounts: Record<HiringStage, number>;
@@ -58,8 +60,10 @@ export class DashboardService {
 
     return {
       total,
+      totalCandidates: total,
       activePipeline,
       interviewing,
+      inInterview: interviewing,
       hired,
       rejected,
       stageCounts,

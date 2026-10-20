@@ -46,11 +46,15 @@ export interface CandidateListResponse {
 }
 
 export interface DashboardSummary {
+  total: number;
   totalCandidates: number;
   activePipeline: number;
+  interviewing: number;
   inInterview: number;
   hired: number;
+  rejected?: number;
   stageCounts: Record<HiringStage, number>;
+  recentCandidates?: Candidate[];
 }
 
 export interface StageMeta {

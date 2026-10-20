@@ -231,6 +231,8 @@ describe('Candidate API & Business Logic Integration Tests', () => {
 
     // Invariant 1: Total count matches
     expect(total).toBe(7);
+    expect(res.body.data.totalCandidates).toBe(7);
+    expect(res.body.data.inInterview).toBe(2);
 
     // Invariant 2: All 6 stages exist with zero-filling
     expect(stageCounts.Applied).toBe(2);
