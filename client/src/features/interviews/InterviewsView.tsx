@@ -224,10 +224,10 @@ export const InterviewsView: React.FC<InterviewsViewProps> = ({ onOpenCandidate 
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-surface border border-subtle p-0.5 rounded-md self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-surface border border-subtle p-0.5 rounded-md self-start sm:self-auto overflow-x-auto no-scrollbar max-w-full">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1 text-xs rounded transition-colors ${
+            className={`px-3 py-1 text-xs rounded transition-colors whitespace-nowrap ${
               activeTab === 'all'
                 ? 'bg-accent text-white font-medium shadow-2xs'
                 : 'text-ink-secondary hover:text-ink-primary'
@@ -237,7 +237,7 @@ export const InterviewsView: React.FC<InterviewsViewProps> = ({ onOpenCandidate 
           </button>
           <button
             onClick={() => setActiveTab('Scheduled')}
-            className={`px-3 py-1 text-xs rounded transition-colors ${
+            className={`px-3 py-1 text-xs rounded transition-colors whitespace-nowrap ${
               activeTab === 'Scheduled'
                 ? 'bg-accent text-white font-medium shadow-2xs'
                 : 'text-ink-secondary hover:text-ink-primary'
@@ -247,7 +247,7 @@ export const InterviewsView: React.FC<InterviewsViewProps> = ({ onOpenCandidate 
           </button>
           <button
             onClick={() => setActiveTab('Completed')}
-            className={`px-3 py-1 text-xs rounded transition-colors ${
+            className={`px-3 py-1 text-xs rounded transition-colors whitespace-nowrap ${
               activeTab === 'Completed'
                 ? 'bg-accent text-white font-medium shadow-2xs'
                 : 'text-ink-secondary hover:text-ink-primary'
@@ -362,7 +362,7 @@ export const InterviewsView: React.FC<InterviewsViewProps> = ({ onOpenCandidate 
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 self-start md:self-center shrink-0">
                   {item.meetingLink && !isCompleted && (
                     <a
                       href={item.meetingLink}

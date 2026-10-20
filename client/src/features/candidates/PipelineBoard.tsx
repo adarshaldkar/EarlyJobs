@@ -178,7 +178,7 @@ export const PipelineBoard: React.FC<PipelineBoardProps> = ({
         {STAGE_ORDER.map((stage) => (
           <div
             key={stage}
-            className="w-[310px] min-w-[310px] shrink-0 bg-white border border-slate-200 rounded-2xl p-4 space-y-4 animate-pulse"
+            className="w-[280px] sm:w-[310px] min-w-[280px] sm:min-w-[310px] shrink-0 bg-white border border-slate-200 rounded-2xl p-4 space-y-4 animate-pulse"
           >
             <div className="h-6 bg-slate-200 rounded-lg w-1/2" />
             <div className="h-32 bg-slate-100 rounded-xl" />
@@ -202,7 +202,7 @@ export const PipelineBoard: React.FC<PipelineBoardProps> = ({
           <div
             key={stage}
             data-testid={`pipeline-column-${stage.toLowerCase()}`}
-            className={`w-[320px] min-w-[320px] shrink-0 bg-slate-100/70 border border-slate-200/90 rounded-2xl flex flex-col shadow-xs transition-all border-t-4 ${meta.borderTop}`}
+            className={`w-[280px] sm:w-[320px] min-w-[280px] sm:min-w-[320px] shrink-0 bg-slate-100/70 border border-slate-200/90 rounded-2xl flex flex-col shadow-xs transition-all border-t-4 ${meta.borderTop}`}
           >
             {/* Column Header */}
             <div

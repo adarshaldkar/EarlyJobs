@@ -15,7 +15,8 @@ import {
   Clock,
   Video,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Menu
 } from 'lucide-react';
 import { Candidate, HiringStage } from './types';
 import {
@@ -62,6 +63,7 @@ function AtsWorkspace() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Health Query
   const {
@@ -181,8 +183,8 @@ function AtsWorkspace() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-canvas text-ink-primary font-sans antialiased">
-      {/* Persistent Left Sidebar Navigation (Desktop) */}
-      <div className="hidden md:flex shrink-0">
+      {/* Persistent Left Sidebar Navigation (Desktop >= 1024px) */}
+      <div className="hidden lg:flex shrink-0">
         <Sidebar
           activeView={activeView}
           onSelectView={(v) => {
@@ -197,94 +199,135 @@ function AtsWorkspace() {
         />
       </div>
 
+      {/* Mobile & Tablet Off-Canvas Sliding Sidebar Drawer (< 1024px) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#0B1120] z-10 shadow-2xl">
+            <Sidebar
+              activeView={activeView}
+              onSelectView={(v) => {
+                setActiveView(v);
+                setIsMobileMenuOpen(false);
+              }}
+              onOpenAddCandidate={() => {
+                setIsModalOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+              counts={{
+                totalCandidates: pagination.total,
+                openJobs: jobsData.filter((j) => j.status === 'Open').length,
+                upcomingInterviews: upcomingInterviews.length
+              }}
+              onCloseMobile={() => setIsMobileMenuOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Main Recruiter Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10 shadow-2xs">
-          <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+        <header className="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-3 sm:px-4 md:px-6 flex items-center justify-between shrink-0 z-10 shadow-2xs">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
+            {/* Mobile/Tablet Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              data-testid="mobile-menu-toggle-btn"
+              aria-label="Open navigation menu"
+              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
+              title="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             {/* Mobile Brand Badge */}
-            <div className="flex md:hidden items-center gap-2 shrink-0">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm shadow-indigo-500/20">
+            <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shadow-xs">
                 EJ
               </div>
             </div>
 
             {/* Top Navigation Tabs */}
-            <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1">
               <button
                 onClick={() => setActiveView('candidates')}
                 data-testid="nav-tab-directory"
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'candidates'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Candidates</span>
               </button>
 
               <button
                 onClick={() => setActiveView('overview')}
                 data-testid="nav-tab-dashboard"
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'overview'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Overview</span>
               </button>
 
               <button
                 onClick={() => setActiveView('jobs')}
                 data-testid="nav-jobs"
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'jobs'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Briefcase className="w-4 h-4" />
+                <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Jobs ({jobsData.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveView('pipeline')}
                 data-testid="nav-pipeline"
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'pipeline'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Kanban className="w-4 h-4" />
+                <Kanban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Pipeline</span>
               </button>
 
               <button
                 onClick={() => setActiveView('interviews')}
                 data-testid="nav-interviews"
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
+                className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'interviews'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Interviews ({upcomingInterviews.length})</span>
               </button>
             </nav>
           </div>
 
           {/* Right Header: System Health & Refresh */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-2">
             <button
               onClick={handleRefreshAll}
               disabled={isRefetchingCandidates}
               data-testid="refresh-btn"
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+              className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
               title="Refresh workspace data"
               aria-label="Refresh workspace data"
             >
@@ -294,7 +337,7 @@ function AtsWorkspace() {
             </button>
 
             <div
-              className={`text-xs flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold shadow-2xs ${
+              className={`text-xs flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full border font-semibold shadow-2xs ${
                 healthData?.status === 'healthy'
                   ? 'text-emerald-700 bg-emerald-50/80 border-emerald-200/80'
                   : isHealthLoading
@@ -311,7 +354,7 @@ function AtsWorkspace() {
                     : 'bg-rose-500'
                 }`}
               />
-              <span className="hidden sm:inline">
+              <span className="hidden md:inline">
                 {healthData?.status === 'healthy'
                   ? 'System Healthy'
                   : isHealthLoading
@@ -323,7 +366,7 @@ function AtsWorkspace() {
         </header>
 
         {/* Workspace Scrollable Body */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50/60">
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-6 lg:p-8 bg-slate-50/60">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* View 1: Overview */}
             {activeView === 'overview' && (

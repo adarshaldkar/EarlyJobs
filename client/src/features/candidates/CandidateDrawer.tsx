@@ -356,8 +356,8 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       aria-modal="true"
       aria-labelledby="drawer-title"
     >
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-lg bg-surface border-l border-subtle shadow-xl flex flex-col">
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+        <div className="w-screen max-w-full sm:max-w-lg bg-surface border-l border-subtle shadow-xl flex flex-col">
           {/* Header */}
           <div className="p-5 border-b border-subtle flex items-start justify-between bg-stone-50/50">
             <div className="flex items-center gap-3">
@@ -599,8 +599,8 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   <span className="text-[10px] text-ink-tertiary">Email cannot be modified</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                       Full Name *
                     </label>
@@ -670,7 +670,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                     />
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                       Skills (comma-separated)
                     </label>
@@ -684,7 +684,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                     />
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                       Professional Headline
                     </label>
@@ -698,7 +698,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                     />
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[11px] font-medium text-ink-secondary mb-1">
                       Internal Recruiter Notes
                     </label>

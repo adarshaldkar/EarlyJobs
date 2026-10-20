@@ -277,14 +277,14 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div className="relative w-full max-w-2xl bg-white border border-slate-200/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-slate-50/50">
           <div>
             <div className="flex items-center gap-2">
               <h2 id="modal-title" className="text-sm font-bold text-slate-900 tracking-tight">
@@ -308,7 +308,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
         </div>
 
         {/* Workflow Mode Tabs */}
-        <div className="px-6 pt-3 pb-2 border-b border-slate-100 flex items-center gap-2 bg-white">
+        <div className="px-4 sm:px-6 pt-3 pb-2 border-b border-slate-100 flex flex-wrap sm:flex-nowrap items-center gap-2 bg-white">
           <button
             type="button"
             onClick={() => setMode('parse')}
@@ -359,7 +359,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
         />
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto px-6 py-4 flex-1">
+        <div className="overflow-y-auto px-4 sm:px-6 py-4 flex-1">
           {mode === 'parse' && !parseResult && !isParsing && (
             /* Upload Dropzone Screen */
             <div className="space-y-4 py-4">
@@ -754,7 +754,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
               </div>
 
               {/* Modal Footer Controls */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
                 {parseResult ? (
                   <button
                     type="button"

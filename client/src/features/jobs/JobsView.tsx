@@ -181,12 +181,12 @@ export const JobsView: React.FC<JobsViewProps> = ({ onViewApplicants }) => {
             <Filter className="w-3.5 h-3.5" />
             Dept:
           </span>
-          <div className="flex items-center gap-1 bg-surface border border-subtle p-0.5 rounded-md">
+          <div className="flex items-center gap-1 bg-surface border border-subtle p-0.5 rounded-md overflow-x-auto no-scrollbar">
             {departments.map((dept) => (
               <button
                 key={dept}
                 onClick={() => setSelectedDept(dept)}
-                className={`px-2.5 py-1 text-xs rounded transition-colors ${
+                className={`px-2.5 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                   selectedDept === dept
                     ? 'bg-accent text-white font-medium shadow-2xs'
                     : 'text-ink-secondary hover:text-ink-primary'
@@ -201,7 +201,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ onViewApplicants }) => {
 
       {/* Jobs Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="h-48 rounded-lg bg-surface border border-subtle animate-pulse" />
           ))}
@@ -223,7 +223,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ onViewApplicants }) => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="jobs-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" data-testid="jobs-grid">
           {filteredJobs.map((job) => (
             <div
               key={job._id}

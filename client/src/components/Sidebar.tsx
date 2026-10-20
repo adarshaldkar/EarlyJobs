@@ -9,7 +9,8 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  Building2
+  Building2,
+  X
 } from 'lucide-react';
 
 export type NavView = 'overview' | 'jobs' | 'candidates' | 'pipeline' | 'interviews';
@@ -23,13 +24,15 @@ interface SidebarProps {
     openJobs?: number;
     upcomingInterviews?: number;
   };
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   onSelectView,
   onOpenAddCandidate,
-  counts
+  counts,
+  onCloseMobile
 }) => {
   const navItems: {
     id: NavView;
@@ -71,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className="w-64 bg-[#0B1120] text-slate-300 flex flex-col shrink-0 select-none z-20 border-r border-slate-800/80 shadow-xl"
+      className="w-64 bg-[#0B1120] text-slate-300 flex flex-col shrink-0 select-none z-20 border-r border-slate-800/80 shadow-xl h-full"
       aria-label="Recruiter workspace navigation"
     >
       {/* Brand Header */}
@@ -90,12 +93,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <p className="text-[10px] text-slate-400 font-medium">Recruiter Command Center</p>
           </div>
         </div>
+
+        {onCloseMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors lg:hidden cursor-pointer"
+            aria-label="Close menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Primary Action Button */}
       <div className="p-4">
         <button
-          onClick={onOpenAddCandidate}
+          onClick={() => {
+            onOpenAddCandidate();
+            onCloseMobile?.();
+          }}
           data-testid="sidebar-add-candidate-btn"
           className="w-full py-2.5 px-4 text-xs font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 active:scale-[0.98] rounded-xl shadow-md shadow-teal-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
@@ -116,7 +132,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => onSelectView(item.id)}
+              onClick={() => {
+                onSelectView(item.id);
+                onCloseMobile?.();
+              }}
               data-testid={`sidebar-nav-${item.id}`}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 isActive

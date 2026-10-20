@@ -119,8 +119,8 @@ export const CandidateTable: React.FC<CandidateTableProps> = ({
             <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
               <th scope="col" className="px-5 py-3.5">Candidate</th>
               <th scope="col" className="px-4 py-3.5">Position</th>
-              <th scope="col" className="px-4 py-3.5">Experience</th>
-              <th scope="col" className="px-4 py-3.5">Applied</th>
+              <th scope="col" className="px-4 py-3.5 hidden md:table-cell">Experience</th>
+              <th scope="col" className="px-4 py-3.5 hidden md:table-cell">Applied</th>
               <th scope="col" className="px-4 py-3.5">Stage</th>
               <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
             </tr>
@@ -205,14 +205,14 @@ export const CandidateTable: React.FC<CandidateTableProps> = ({
                     </td>
 
                     {/* Experience */}
-                    <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap tabular-nums">
+                    <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap tabular-nums hidden md:table-cell">
                       <span className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200/80">
                         {candidate.experienceYears} {candidate.experienceYears === 1 ? 'yr' : 'yrs'}
                       </span>
                     </td>
 
                     {/* Applied Date */}
-                    <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap tabular-nums text-xs">
+                    <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap tabular-nums text-xs hidden md:table-cell">
                       {formatDate(candidate.createdAt)}
                     </td>
 
