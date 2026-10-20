@@ -5,8 +5,8 @@
 [![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Express](https://img.shields.io/badge/Express-4.19-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB%20Atlas-8.3-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![Vitest](https://img.shields.io/badge/Vitest%20Tests-15%2F15%20Passing-green?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/Playwright%20E2E-11%2F11%20Passing-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest%20Tests-19%2F19%20Passing-green?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright%20E2E-12%2F12%20Passing-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern, full-stack **Mini Applicant Tracking System (ATS)** built with **React 18, TypeScript, Express, and MongoDB Atlas**. Engineered from the ground up to provide recruiters with a centralized command center to manage the complete hiring lifecycle: job requisitions, candidate sourcing, resume reviews, 6-stage visual Kanban pipeline movement, scheduled interview loops, and structured evaluation feedback.
@@ -45,7 +45,20 @@ The application shell features a **persistent recruiter sidebar** (desktop) and 
 
 ## 🚀 Key Features & ATS Workflows
 
-### 1. In-App Resume Dossier & Viewer (`ResumePreviewModal.tsx`)
+### 1. Robust Resume Ingestion & Parsing Engine (`resume-parser.service.ts`)
+A dedicated, security-conscious resume parsing architecture built on PDF.js layout analysis:
+* **Deep Hyperlink Extraction:**
+  * **PDF Link Annotations:** Extracts underlying URL destinations even when concealed behind anchor text (e.g. visible text `LinkedIn Profile` linking to `https://www.linkedin.com/in/...`).
+  * **Visible URL Normalization:** Automatically captures printed URLs (`github.com/adarsh-dev`), normalizes schemes safely (`https://`), and categorizes link types (`linkedin`, `github`, `portfolio`, `leetcode`, `codeforces`, `website`).
+  * **Case D Unlinked Labels:** When resume mentions `LinkedIn` without a link annotation, retains the label, sets status to `needs_input`, and **never** hallucinates a URL from the candidate's name.
+* **SSRF & Security Shield:**
+  * Strict protocol whitelist (`http:` / `https:` only) rejecting dangerous schemes (`javascript:`, `data:`, `file:`).
+  * **Zero server-side crawling/fetching** to guarantee immunity from SSRF and redirect abuse.
+  * PDF magic bytes verification (`%PDF-`), 5MB size ceiling, 15-page bound, and SHA-256 document hashing for integrity and duplicate prevention.
+* **Structured Data Extraction:** Automatically parses name, multi-email detection with primary resolution, phone numbers (international and 5+5 formats), target roles, conservative years of experience, and a 20-skill categorized taxonomy.
+* **Recruiter Review Workspace (`CandidateModal.tsx`):** Every parse creates a draft profile with calibrated extraction confidence and validation warning banners. Recruiters review, edit links, inspect warnings, and confirm before candidate creation.
+
+### 2. In-App Resume Dossier & Viewer (`ResumePreviewModal.tsx`)
 Recruiters never need to leave the ATS to inspect candidate CVs:
 * **In-App Document Preview:** Click **Preview** on any candidate record to view their PDF resume inside an embedded document viewer with zoom, download, and external tab controls.
 * **Direct Download & Replace:** 1-click **Download** button and **Replace** file picker connected to Multer static storage (`POST /api/candidates/:id/resume`).

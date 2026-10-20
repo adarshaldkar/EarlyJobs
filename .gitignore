@@ -48,4 +48,8 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# Uploaded documents
+server/uploads/
+
+
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CandidateService } from '../services/candidate.service.js';
+import { ResumeParserService } from '../services/resume-parser.service.js';
 import {
   createCandidateSchema,
   updateCandidateSchema,
@@ -142,6 +143,32 @@ export class CandidateController {
         data: {
           message: 'Candidate deleted successfully'
         }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async parseResume(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      if (!req.file) {
+        throw new ApiError(400, 'NO_FILE_UPLOADED', 'Please select a PDF resume file to parse');
+      }
+
+      const relativeUrl = `/uploads/resumes/${req.file.filename}`;
+      const result = await ResumeParserService.parseResume(
+        req.file.path,
+        req.file.originalname,
+        relativeUrl
+      );
+
+      res.status(200).json({
+        success: true,
+        data: result
       });
     } catch (err) {
       next(err);

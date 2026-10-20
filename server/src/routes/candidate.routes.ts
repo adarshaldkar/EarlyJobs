@@ -4,10 +4,11 @@ import { validateObjectId } from '../middleware/validate-id.js';
 
 const router = Router();
 
+import { resumeUpload } from '../config/upload.js';
+
+router.post('/parse-resume', resumeUpload.single('resume'), CandidateController.parseResume);
 router.post('/', CandidateController.create);
 router.get('/', CandidateController.list);
-
-import { resumeUpload } from '../config/upload.js';
 
 // ID-parameterized routes protected by validateObjectId
 router.get('/:id', validateObjectId, CandidateController.getById);

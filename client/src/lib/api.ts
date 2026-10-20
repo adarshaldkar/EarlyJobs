@@ -4,10 +4,15 @@ import {
   Candidate,
   CandidateListResponse,
   DashboardSummary,
+  ExtractedLink,
   HiringStage,
   Interview,
   Job,
-  StageMeta
+  ResumeDocumentMeta,
+  ResumeParsingResult,
+  StageMeta,
+  WorkExperience,
+  EducationRecord
 } from '../types';
 
 export const apiClient = axios.create({
@@ -22,6 +27,9 @@ export interface CreateCandidateInput {
   email: string;
   phone?: string;
   position: string;
+  headline?: string;
+  summary?: string;
+  location?: string;
   experienceYears: number;
   skills?: string[];
   resumeUrl?: string;
@@ -29,6 +37,11 @@ export interface CreateCandidateInput {
   rating?: number;
   tags?: string[];
   stage?: HiringStage;
+  links?: ExtractedLink[];
+  workExperience?: WorkExperience[];
+  education?: EducationRecord[];
+  resumeMetadata?: ResumeDocumentMeta;
+  parsingStatus?: 'uploaded' | 'needs_review' | 'ready' | 'failed';
 }
 
 export interface CandidateQueryParams {
@@ -100,6 +113,17 @@ export async function uploadCandidateResume(id: string, file: File): Promise<Can
   const formData = new FormData();
   formData.append('resume', file);
   const response = await apiClient.post<ApiResponse<Candidate>>(`/candidates/${id}/resume`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data.data;
+}
+
+export async function parseCandidateResume(file: File): Promise<ResumeParsingResult> {
+  const formData = new FormData();
+  formData.append('resume', file);
+  const response = await apiClient.post<ApiResponse<ResumeParsingResult>>('/candidates/parse-resume', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }

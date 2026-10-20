@@ -3,6 +3,7 @@ import { HIRING_STAGES } from '../models/Candidate.js';
 
 const validateHttpUrl = (val: string | undefined): boolean => {
   if (!val || val.trim() === '') return true;
+  if (val.startsWith('/uploads/')) return true;
   try {
     const parsed = new URL(val);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -25,7 +26,7 @@ export const createCandidateSchema = z.object({
   phone: z
     .string()
     .trim()
-    .max(20, 'Phone number must not exceed 20 characters')
+    .max(30, 'Phone number must not exceed 30 characters')
     .optional(),
   position: z
     .string({ required_error: 'Target position is required' })
@@ -61,7 +62,17 @@ export const createCandidateSchema = z.object({
     .optional(),
   rating: z.number().min(0).max(5).optional().default(0),
   tags: z.array(z.string().trim().max(30)).max(10).optional().default([]),
-  stage: z.enum(HIRING_STAGES).optional().default('Applied')
+  stage: z.enum(HIRING_STAGES).optional().default('Applied'),
+  headline: z.string().trim().optional(),
+  summary: z.string().trim().max(4000).optional(),
+  location: z.string().trim().optional(),
+  links: z.array(z.any()).optional().default([]),
+  workExperience: z.array(z.any()).optional().default([]),
+  education: z.array(z.any()).optional().default([]),
+  projects: z.array(z.any()).optional().default([]),
+  certifications: z.array(z.any()).optional().default([]),
+  resumeMetadata: z.any().optional(),
+  parsingStatus: z.enum(['uploaded', 'needs_review', 'ready', 'failed']).optional()
 });
 
 export const updateCandidateSchema = z

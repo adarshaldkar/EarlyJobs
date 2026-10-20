@@ -2,6 +2,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { ApiError } from '../utils/ApiError.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,7 +39,7 @@ export const resumeUpload = multer({
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF and Word documents are permitted for resume uploads.'));
+      cb(new ApiError(400, 'INVALID_FILE_TYPE', 'Only PDF and Word documents are permitted for resume uploads.'));
     }
   }
 });

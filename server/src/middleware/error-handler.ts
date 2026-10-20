@@ -91,7 +91,19 @@ export const errorHandler = (
     return;
   }
 
-  // 7. Unhandled / Internal Server Errors
+  // 7. Multer Upload Errors (e.g. file size exceeded)
+  if (err.name === 'MulterError') {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: err.code || 'UPLOAD_ERROR',
+        message: err.message
+      }
+    });
+    return;
+  }
+
+  // 8. Unhandled / Internal Server Errors
   console.error('\x1b[31m%s\x1b[0m', '💥 [server] Uncaught Exception:', err);
 
   const message = env.NODE_ENV === 'production' 

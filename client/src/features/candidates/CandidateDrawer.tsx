@@ -20,7 +20,8 @@ import {
   Eye,
   Download,
   UploadCloud,
-  RefreshCw
+  RefreshCw,
+  Globe
 } from 'lucide-react';
 import { Candidate, HIRING_STAGES, HiringStage } from '../../types';
 import { StageBadge } from '../../components/StageBadge';
@@ -532,6 +533,30 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Verified Candidate Profile Links & Online Presence */}
+            {candidate.links && candidate.links.length > 0 && (
+              <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  <Globe className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Verified Candidate Profiles & Links</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {candidate.links.map((link, idx) => (
+                    <a
+                      key={idx}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800 flex items-center gap-1.5 transition-colors group shadow-2xs"
+                    >
+                      <span>{link.label}</span>
+                      <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-indigo-600" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Resume Dossier & In-App Viewer Workflow */}
             <div className="p-3.5 rounded border border-subtle bg-surface space-y-3">

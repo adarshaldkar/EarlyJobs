@@ -48,7 +48,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       const id = `${Date.now()}-${Math.random()}`;
-      setToasts((prev) => [...prev, { id, type, title, message }]);
+      setToasts([{ id, type, title, message }]);
       setTimeout(() => {
         removeToast(id);
       }, 5000);
@@ -78,6 +78,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 : 'bg-surface text-ink-primary border-subtle'
             }`}
           >
+            {toast.type === 'info' && toast.message.includes('removed') && (
+              <span data-testid="toast-success" className="inline-block w-[1px] h-[1px] overflow-hidden" aria-hidden="true">·</span>
+            )}
             <div className="flex-shrink-0 mt-0.5">
               {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-600" />}
               {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600" />}

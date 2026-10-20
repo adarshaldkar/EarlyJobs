@@ -23,6 +23,9 @@ export interface ICandidate {
   email: string;
   phone?: string;
   position: string;
+  headline?: string;
+  summary?: string;
+  location?: string;
   experienceYears: number;
   skills: string[];
   resumeUrl?: string;
@@ -31,6 +34,13 @@ export interface ICandidate {
   stageHistory: IStageHistory[];
   rating?: number;
   tags?: string[];
+  links?: any[];
+  workExperience?: any[];
+  education?: any[];
+  projects?: any[];
+  certifications?: any[];
+  resumeMetadata?: any;
+  parsingStatus?: 'uploaded' | 'needs_review' | 'ready' | 'failed';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -141,6 +151,20 @@ const CandidateSchema = new Schema<ICandidateDocument>(
           notes: 'Initial application'
         }
       ]
+    },
+    headline: { type: String, trim: true },
+    summary: { type: String, trim: true, maxlength: 4000 },
+    location: { type: String, trim: true },
+    links: { type: [Schema.Types.Mixed], default: [] },
+    workExperience: { type: [Schema.Types.Mixed], default: [] },
+    education: { type: [Schema.Types.Mixed], default: [] },
+    projects: { type: [Schema.Types.Mixed], default: [] },
+    certifications: { type: [Schema.Types.Mixed], default: [] },
+    resumeMetadata: { type: Schema.Types.Mixed, default: null },
+    parsingStatus: {
+      type: String,
+      enum: ['uploaded', 'needs_review', 'ready', 'failed'],
+      default: undefined
     }
   },
   {
