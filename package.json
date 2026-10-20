@@ -12,9 +12,13 @@
     "build:client": "npm run build --prefix client",
     "build": "npm run build:server && npm run build:client",
     "test": "npm run test --prefix server",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "start": "node server/dist/server.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "concurrently": "^8.2.2"
   }
 }
