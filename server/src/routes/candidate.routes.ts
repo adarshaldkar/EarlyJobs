@@ -11,6 +11,7 @@ router.get('/', CandidateController.list);
 router.get('/:id', validateObjectId, CandidateController.getById);
 router.patch('/:id', validateObjectId, CandidateController.update);
 router.patch('/:id/stage', validateObjectId, CandidateController.updateStage);
+router.post('/:id/notes', validateObjectId, CandidateController.addNote);
 router.delete('/:id', validateObjectId, CandidateController.delete);
 
 export default router;

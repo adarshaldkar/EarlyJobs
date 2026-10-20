@@ -29,6 +29,8 @@ export interface ICandidate {
   notes?: string;
   stage: HiringStage;
   stageHistory: IStageHistory[];
+  rating?: number;
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,6 +111,16 @@ const CandidateSchema = new Schema<ICandidateDocument>(
       type: String,
       trim: true,
       maxlength: [2000, 'Notes cannot exceed 2000 characters']
+    },
+    rating: {
+      type: Number,
+      min: [0, 'Rating cannot be negative'],
+      max: [5, 'Rating cannot exceed 5'],
+      default: 0
+    },
+    tags: {
+      type: [String],
+      default: []
     },
     stage: {
       type: String,

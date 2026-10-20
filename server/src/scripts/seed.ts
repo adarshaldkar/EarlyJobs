@@ -24,6 +24,8 @@ interface SeedRecord {
   skills: string[];
   resumeUrl: string;
   notes: string;
+  rating?: number;
+  tags?: string[];
   stage: HiringStage;
   stageHistory: {
     from: HiringStage | null;
@@ -44,6 +46,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Node.js', 'MongoDB', 'TypeScript'],
     resumeUrl: 'https://github.com/aaravpatel/resume/raw/main/cv.pdf',
     notes: 'Submitted via EarlyJobs careers portal. Strong open-source contributions.',
+    rating: 4,
+    tags: ["Top Talent","Referral"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 2), notes: 'Application received' }]
   },
@@ -56,6 +60,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Tailwind CSS', 'Next.js', 'JavaScript'],
     resumeUrl: 'https://priyasharma.dev/resume.pdf',
     notes: 'Strong portfolio demonstrating clean UI/UX components.',
+    rating: 5,
+    tags: ["Design Mindset","Immediate Joiner"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 3), notes: 'Application received' }]
   },
@@ -68,6 +74,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Node.js', 'Express', 'PostgreSQL', 'Docker'],
     resumeUrl: 'https://drive.google.com/file/d/sample-rohan/view',
     notes: 'Backend API specialist with fintech experience.',
+    rating: 4,
+    tags: ["Fintech Exp","High Priority"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 1), notes: 'Application received' }]
   },
@@ -80,6 +88,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Python', 'FastAPI', 'MongoDB'],
     resumeUrl: 'https://nehaverma.io/cv.pdf',
     notes: 'Graduated from NIT Trichy, worked on edtech startups.',
+    rating: 4,
+    tags: ["NIT Alum","Fast Learner"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 4), notes: 'Application received' }]
   },
@@ -92,6 +102,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['AWS', 'Kubernetes', 'Terraform', 'CI/CD'],
     resumeUrl: 'https://vikramjoshi.net/resume.pdf',
     notes: 'Certified AWS Solutions Architect.',
+    rating: 5,
+    tags: ["AWS Certified","Top Talent"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 5), notes: 'Application received' }]
   },
@@ -104,6 +116,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Figma', 'React', 'CSS Modules', 'Design Systems'],
     resumeUrl: 'https://behance.net/ananyagupta/resume.pdf',
     notes: 'Demonstrated exceptional Ashby/Linear-like design sensibilities.',
+    rating: 5,
+    tags: ["Design Leader","Portfolio Star"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 2), notes: 'Application received' }]
   },
@@ -116,6 +130,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React Native', 'TypeScript', 'Redux', 'iOS/Android'],
     resumeUrl: 'https://karanmehra.dev/cv.pdf',
     notes: 'Shipped 3 consumer apps on Google Play Store.',
+    rating: 3,
+    tags: ["Mobile Specialist"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 6), notes: 'Application received' }]
   },
@@ -128,6 +144,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Playwright', 'Jest', 'Cypress', 'TypeScript'],
     resumeUrl: 'https://shreyanair.qa/resume.pdf',
     notes: 'Deep experience writing robust E2E test suites.',
+    rating: 4,
+    tags: ["Immediate Joiner"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 1), notes: 'Application received' }]
   },
@@ -140,6 +158,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Python', 'SQL', 'MongoDB Aggregation', 'Kafka'],
     resumeUrl: 'https://adityak.dev/resume.pdf',
     notes: 'Pipeline data modeling and transformation specialist.',
+    rating: 5,
+    tags: ["Ex-FAANG","High Priority"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 3), notes: 'Application received' }]
   },
@@ -152,6 +172,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Agile', 'Jira', 'User Research', 'Product Analytics'],
     resumeUrl: 'https://divyaiyer.pm/cv.pdf',
     notes: 'Previous founder of an early-stage SaaS product.',
+    rating: 4,
+    tags: ["Referral","Top Talent"],
     stage: 'Applied',
     stageHistory: [{ from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 7), notes: 'Application received' }]
   },
@@ -166,6 +188,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'TypeScript', 'Performance', 'Web Vitals'],
     resumeUrl: 'https://siddharthrao.dev/resume.pdf',
     notes: 'Recruiter screened on phone. Demonstrated deep React reconciliation mastery.',
+    rating: 4,
+    tags: ["Strong Communicator","Top Talent"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 8), notes: 'Application received' },
@@ -181,6 +205,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Node.js', 'Microservices', 'Redis', 'RabbitMQ'],
     resumeUrl: 'https://snehas.me/cv.pdf',
     notes: 'Initial phone screen passed. Scheduled for technical interview.',
+    rating: 5,
+    tags: ["Ex-FAANG","System Design"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 5), notes: 'Application received' },
@@ -196,6 +222,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Next.js', 'Node.js', 'Prisma', 'Tailwind CSS'],
     resumeUrl: 'https://arjunn.dev/resume.pdf',
     notes: 'High problem-solving aptitude. Solid GitHub portfolio.',
+    rating: 4,
+    tags: ["Immediate Joiner"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 7), notes: 'Application received' },
@@ -211,6 +239,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'CSS/SCSS', 'Jest', 'Accessibility (a11y)'],
     resumeUrl: 'https://meerac.com/resume.pdf',
     notes: 'Passionate about accessible web software and semantic HTML.',
+    rating: 4,
+    tags: ["Referral","High Priority"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 6), notes: 'Application received' },
@@ -226,6 +256,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Docker', 'Kubernetes', 'Helm', 'Prometheus'],
     resumeUrl: 'https://harishs.cloud/cv.pdf',
     notes: 'Clear communication during screening call. Ready for tech round.',
+    rating: 4,
+    tags: ["Fast Learner"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 9), notes: 'Application received' },
@@ -241,6 +273,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['OWASP Top 10', 'Penetration Testing', 'AppSec', 'Python'],
     resumeUrl: 'https://tanvibhatia.sec/cv.pdf',
     notes: 'Threat modeling and API vulnerability assessment background.',
+    rating: 5,
+    tags: ["Team Player","Top Talent"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 4), notes: 'Application received' },
@@ -256,6 +290,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Go', 'PostgreSQL', 'gRPC', 'Docker'],
     resumeUrl: 'https://manishtiwari.dev/resume.pdf',
     notes: 'Screened for backend concurrency roles. Strong fundamentals.',
+    rating: 3,
+    tags: ["Startup Veteran"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 6), notes: 'Application received' },
@@ -271,6 +307,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Node.js', 'Express', 'Tailwind CSS'],
     resumeUrl: 'https://ritukapoor.dev/cv.pdf',
     notes: 'Well-rounded developer with agile teamwork experience.',
+    rating: 4,
+    tags: ["Strong Portfolio"],
     stage: 'Screening',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 5), notes: 'Application received' },
@@ -288,6 +326,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Node.js', 'MongoDB', 'System Design', 'Redis'],
     resumeUrl: 'https://gauravagarwal.dev/resume.pdf',
     notes: 'Round 1 technical interview cleared with flying colors. System design round upcoming.',
+    rating: 5,
+    tags: ["Top Talent","High Priority"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 12), notes: 'Application received' },
@@ -304,6 +344,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
     resumeUrl: 'https://ishaanm.tech/cv.pdf',
     notes: 'Live coding challenge completed. Strong architectural reasoning.',
+    rating: 5,
+    tags: ["Ex-FAANG","Tech Lead Material"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 10), notes: 'Application received' },
@@ -320,6 +362,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Team Leadership', 'Architecture', 'Mentorship', 'Agile'],
     resumeUrl: 'https://kavitapillai.me/cv.pdf',
     notes: 'Leadership and culture interview scheduled with founders.',
+    rating: 4,
+    tags: ["Problem Solver","Culture Fit"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 14), notes: 'Application received' },
@@ -336,6 +380,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Vite', 'State Machines', 'Tailwind CSS'],
     resumeUrl: 'https://abhinavs.dev/resume.pdf',
     notes: 'UI assessment passed. Impressed interviewers with clean component abstraction.',
+    rating: 5,
+    tags: ["Strong Communicator","Immediate Joiner"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 11), notes: 'Application received' },
@@ -352,6 +398,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Python', 'PyTorch', 'NLP', 'Vector Databases'],
     resumeUrl: 'https://deepikac.ai/resume.pdf',
     notes: 'Interviewing for AI recommendation ranking role.',
+    rating: 4,
+    tags: ["System Design Star"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 9), notes: 'Application received' },
@@ -368,6 +416,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Java', 'Spring Boot', 'Kafka', 'Elasticsearch'],
     resumeUrl: 'https://naveenkumar.dev/cv.pdf',
     notes: 'Final technical loop today.',
+    rating: 4,
+    tags: ["Referral"],
     stage: 'Interview',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 13), notes: 'Application received' },
@@ -386,6 +436,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
     resumeUrl: 'https://rahulvarma.dev/cv.pdf',
     notes: 'Offer letter extended. Candidate reviewing package details.',
+    rating: 5,
+    tags: ["Top Talent","Priority Close"],
     stage: 'Offer',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 20), notes: 'Application received' },
@@ -403,6 +455,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Design Systems', 'React', 'Figma', 'TypeScript'],
     resumeUrl: 'https://pallavijain.design/resume.pdf',
     notes: 'Compensation negotiation finalized. Expected start date in 3 weeks.',
+    rating: 5,
+    tags: ["Strong Offer","High Priority"],
     stage: 'Offer',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 18), notes: 'Application received' },
@@ -420,6 +474,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Kubernetes', 'GCP', 'Terraform', 'Security'],
     resumeUrl: 'https://sureshreddy.cloud/cv.pdf',
     notes: 'Verbal offer accepted. Written contract sent.',
+    rating: 4,
+    tags: ["Culture Champion"],
     stage: 'Offer',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 22), notes: 'Application received' },
@@ -437,6 +493,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Product Strategy', 'UI/UX', 'Design Tokens', 'Prototyping'],
     resumeUrl: 'https://anjalimenon.work/cv.pdf',
     notes: 'Competitive offer made. Candidate excited about EarlyJobs mission.',
+    rating: 5,
+    tags: ["Ex-FAANG","Leadership"],
     stage: 'Offer',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 16), notes: 'Application received' },
@@ -456,6 +514,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['TypeScript', 'Node.js', 'Distributed Systems', 'MongoDB'],
     resumeUrl: 'https://karthikswami.dev/resume.pdf',
     notes: 'Joined EarlyJobs core platform engineering team on October 1st.',
+    rating: 5,
+    tags: ["Top Performer","Joined Team"],
     stage: 'Hired',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 35), notes: 'Application received' },
@@ -474,6 +534,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'TypeScript', 'Tailwind CSS', 'Redux Toolkit'],
     resumeUrl: 'https://aditibose.dev/cv.pdf',
     notes: 'Joined frontend team. Currently leading component library upgrade.',
+    rating: 5,
+    tags: ["Team Lead","Top Talent"],
     stage: 'Hired',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 30), notes: 'Application received' },
@@ -492,6 +554,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['React', 'Express', 'MongoDB', 'Docker'],
     resumeUrl: 'https://tushars.dev/resume.pdf',
     notes: 'Successfully joined. Shipped first PR within week 1.',
+    rating: 4,
+    tags: ["Strong Performer"],
     stage: 'Hired',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 28), notes: 'Application received' },
@@ -510,6 +574,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Node.js', 'PostgreSQL', 'Microservices', 'Redis'],
     resumeUrl: 'https://bhavnak.tech/cv.pdf',
     notes: 'Joined payments service team.',
+    rating: 5,
+    tags: ["Ex-FAANG","Onboarding Complete"],
     stage: 'Hired',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 32), notes: 'Application received' },
@@ -530,6 +596,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['HTML', 'CSS', 'Basic JavaScript'],
     resumeUrl: 'https://sunilmathur.info/cv.pdf',
     notes: 'Did not meet minimum React & TypeScript requirement for senior grade.',
+    rating: 2,
+    tags: ["Skill Gap"],
     stage: 'Rejected',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 15), notes: 'Application received' },
@@ -546,6 +614,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['Bash', 'Linux', 'Git'],
     resumeUrl: 'https://poojabhatt.dev/cv.pdf',
     notes: 'Candidate accepted an alternate counter-offer before interviews.',
+    rating: 3,
+    tags: ["Future Prospect"],
     stage: 'Rejected',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 14), notes: 'Application received' },
@@ -562,6 +632,8 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     skills: ['PHP', 'MySQL', 'jQuery'],
     resumeUrl: 'https://rajeshnair.me/resume.pdf',
     notes: 'Role requires modern Node.js and MongoDB asynchronous stack.',
+    rating: 2,
+    tags: ["Tech Stack Divergence"],
     stage: 'Rejected',
     stageHistory: [
       { from: null, to: 'Applied', changedAt: new Date(Date.now() - 86400000 * 18), notes: 'Application received' },

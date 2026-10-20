@@ -32,6 +32,8 @@ const createCandidateFormSchema = z.object({
       }
     }, 'resumeUrl must be a valid http: or https: URL'),
   notes: z.string().trim().max(2000, 'Notes cannot exceed 2000 characters').optional(),
+  rating: z.number().min(0).max(5).default(0),
+  tags: z.string().optional(),
   stage: z.enum(HIRING_STAGES).default('Applied')
 });
 
@@ -65,6 +67,8 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
       skills: '',
       resumeUrl: '',
       notes: '',
+      rating: 0,
+      tags: '',
       stage: 'Applied'
     }
   });
@@ -99,6 +103,14 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
             .filter(Boolean)
         : [];
 
+      // Parse comma-separated tags
+      const parsedTags = data.tags
+        ? data.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
+
       await createCandidate({
         name: data.name,
         email: data.email,
@@ -108,6 +120,8 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
         skills: parsedSkills,
         resumeUrl: data.resumeUrl || undefined,
         notes: data.notes || undefined,
+        rating: Number(data.rating) || 0,
+        tags: parsedTags,
         stage: data.stage as HiringStage
       });
 
@@ -296,6 +310,41 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
                   {errors.resumeUrl.message}
                 </p>
               )}
+            </div>
+
+            {/* Rating */}
+            <div>
+              <label htmlFor="field-rating" className="block text-xs font-medium text-ink-primary mb-1">
+                Candidate Rating (0–5 Stars)
+              </label>
+              <select
+                id="field-rating"
+                {...register('rating', { valueAsNumber: true })}
+                data-testid="input-rating"
+                className="w-full px-3 py-2 text-xs bg-canvas border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
+              >
+                <option value={0}>0 - Unrated</option>
+                <option value={1}>1 - Below Expectations (★)</option>
+                <option value={2}>2 - Developing (★★)</option>
+                <option value={3}>3 - Solid Candidate (★★★)</option>
+                <option value={4}>4 - Strong Hire (★★★★)</option>
+                <option value={5}>5 - Exceptional / Top Talent (★★★★★)</option>
+              </select>
+            </div>
+
+            {/* Quick Tags */}
+            <div className="sm:col-span-2">
+              <label htmlFor="field-tags" className="block text-xs font-medium text-ink-primary mb-1">
+                Recruiter Tags (comma-separated, e.g. Referral, Top Talent, Immediate Joiner)
+              </label>
+              <input
+                id="field-tags"
+                type="text"
+                {...register('tags')}
+                placeholder="Top Talent, Referral, Immediate Joiner"
+                data-testid="input-tags"
+                className="w-full px-3 py-2 text-xs bg-canvas border border-subtle rounded text-ink-primary placeholder:text-ink-tertiary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
+              />
             </div>
 
             {/* Skills */}

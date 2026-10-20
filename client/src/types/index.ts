@@ -26,6 +26,8 @@ export interface Candidate {
   skills: string[];
   resumeUrl?: string;
   notes?: string;
+  rating?: number;
+  tags?: string[];
   stage: HiringStage;
   stageHistory: StageHistoryEntry[];
   createdAt: string;

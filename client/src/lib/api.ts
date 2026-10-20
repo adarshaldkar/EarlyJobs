@@ -24,6 +24,8 @@ export interface CreateCandidateInput {
   skills?: string[];
   resumeUrl?: string;
   notes?: string;
+  rating?: number;
+  tags?: string[];
   stage?: HiringStage;
 }
 
@@ -31,6 +33,7 @@ export interface CandidateQueryParams {
   page?: number;
   limit?: number;
   search?: string;
+  position?: string;
   stage?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -50,6 +53,26 @@ export async function fetchCandidate(id: string): Promise<Candidate> {
 
 export async function createCandidate(payload: CreateCandidateInput): Promise<Candidate> {
   const response = await apiClient.post<ApiResponse<Candidate>>('/candidates', payload);
+  return response.data.data;
+}
+
+export async function updateCandidate(
+  id: string,
+  data: Partial<Omit<Candidate, '_id' | 'email' | 'stage' | 'stageHistory' | 'createdAt' | 'updatedAt'>>
+): Promise<Candidate> {
+  const response = await apiClient.patch<ApiResponse<Candidate>>(`/candidates/${id}`, data);
+  return response.data.data;
+}
+
+export async function addCandidateNote(
+  id: string,
+  note: string,
+  category?: string
+): Promise<Candidate> {
+  const response = await apiClient.post<ApiResponse<Candidate>>(`/candidates/${id}/notes`, {
+    note,
+    category
+  });
   return response.data.data;
 }
 

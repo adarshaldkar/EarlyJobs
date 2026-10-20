@@ -59,6 +59,8 @@ export const createCandidateSchema = z.object({
     .trim()
     .max(2000, 'Notes cannot exceed 2000 characters')
     .optional(),
+  rating: z.number().min(0).max(5).optional().default(0),
+  tags: z.array(z.string().trim().max(30)).max(10).optional().default([]),
   stage: z.enum(HIRING_STAGES).optional().default('Applied')
 });
 
@@ -113,7 +115,9 @@ export const updateCandidateSchema = z
       .string()
       .trim()
       .max(2000, 'Notes cannot exceed 2000 characters')
-      .optional()
+      .optional(),
+    rating: z.number().min(0).max(5).optional(),
+    tags: z.array(z.string().trim().max(30)).max(10).optional()
   })
   .strict();
 
@@ -131,15 +135,21 @@ export const updateStageSchema = z.object({
     .optional()
 });
 
+export const addNoteSchema = z.object({
+  note: z.string().trim().min(1, 'Note cannot be empty').max(2000, 'Note cannot exceed 2000 characters'),
+  category: z.string().trim().max(50).optional().default('General Note')
+});
+
 export const queryCandidatesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),
   search: z.string().trim().optional(),
+  position: z.string().trim().optional(),
   stage: z
     .enum([...HIRING_STAGES, 'All', ''] as const)
     .optional(),
   sortBy: z
-    .enum(['createdAt', 'name', 'experienceYears'] as const)
+    .enum(['createdAt', 'name', 'experienceYears', 'rating'] as const)
     .default('createdAt'),
   sortOrder: z.enum(['asc', 'desc'] as const).default('desc')
 });
@@ -147,4 +157,5 @@ export const queryCandidatesSchema = z.object({
 export type CreateCandidateInput = z.infer<typeof createCandidateSchema>;
 export type UpdateCandidateInput = z.infer<typeof updateCandidateSchema>;
 export type UpdateStageInput = z.infer<typeof updateStageSchema>;
+export type AddNoteInput = z.infer<typeof addNoteSchema>;
 export type QueryCandidatesInput = z.infer<typeof queryCandidatesSchema>;

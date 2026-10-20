@@ -71,6 +71,10 @@ export class CandidateService {
       filter.stage = stage;
     }
 
+    if (query.position && query.position !== 'All' && query.position.trim() !== '') {
+      filter.position = query.position;
+    }
+
     // 2. ReDoS-safe search
     if (search && search.trim() !== '') {
       const safeRegex = new RegExp(escapeRegex(search.trim()), 'i');
@@ -116,7 +120,35 @@ export class CandidateService {
   }
 
   /**
-   * Update candidate profile fields (name, position, experience, skills, resumeUrl, notes).
+   * Add recruiter note / interview feedback to candidate history
+   */
+  static async addNote(
+    id: string,
+    noteText: string,
+    category?: string
+  ): Promise<ICandidateDocument> {
+    const candidate = await Candidate.findById(id);
+    if (!candidate) {
+      throw new ApiError(404, 'CANDIDATE_NOT_FOUND', 'Candidate not found.');
+    }
+
+    const formattedNote = category && category !== 'General Note'
+      ? `[${category}] ${noteText}`
+      : noteText;
+
+    candidate.stageHistory.push({
+      from: candidate.stage,
+      to: candidate.stage,
+      changedAt: new Date(),
+      notes: formattedNote
+    });
+
+    await candidate.save();
+    return candidate;
+  }
+
+  /**
+   * Update candidate profile fields (name, position, experience, skills, resumeUrl, notes, rating, tags).
    * Email and stage are strictly immutable via this endpoint.
    */
   static async updateCandidate(

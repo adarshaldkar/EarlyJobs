@@ -7,7 +7,8 @@ import {
   ChevronRight,
   User,
   Clock,
-  Briefcase
+  Briefcase,
+  Star
 } from 'lucide-react';
 import { Candidate, HIRING_STAGES, HiringStage, CandidatePagination } from '../../types';
 import { updateCandidateStage, deleteCandidate, getApiErrorMessage } from '../../lib/api';
@@ -149,13 +150,29 @@ export const CandidateTable: React.FC<CandidateTableProps> = ({
                           {getInitials(candidate.name)}
                         </div>
                         <div className="min-w-0">
-                          <button
-                            onClick={() => onSelectCandidate(candidate)}
-                            data-testid={`candidate-name-link-${candidate._id}`}
-                            className="font-medium text-ink-primary hover:text-accent hover:underline text-left truncate block max-w-[200px]"
-                          >
-                            {candidate.name}
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => onSelectCandidate(candidate)}
+                              data-testid={`candidate-name-link-${candidate._id}`}
+                              className="font-medium text-ink-primary hover:text-accent hover:underline text-left truncate block max-w-[200px]"
+                            >
+                              {candidate.name}
+                            </button>
+                            {Boolean(candidate.rating && candidate.rating > 0) && (
+                              <div className="flex items-center text-amber-500" title={`Rating: ${candidate.rating}/5`}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-2.5 h-2.5 ${
+                                      s <= (candidate.rating || 0)
+                                        ? 'fill-amber-400 text-amber-400'
+                                        : 'text-stone-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <span className="text-[11px] text-ink-secondary truncate block max-w-[200px]">
                             {candidate.email}
                           </span>
@@ -163,9 +180,26 @@ export const CandidateTable: React.FC<CandidateTableProps> = ({
                       </div>
                     </td>
 
-                    {/* Position */}
-                    <td className="px-4 py-3 text-ink-primary whitespace-nowrap font-normal">
-                      {candidate.position}
+                    {/* Position & Tags */}
+                    <td className="px-4 py-3 whitespace-nowrap font-normal">
+                      <div className="text-ink-primary text-xs font-medium">{candidate.position}</div>
+                      {candidate.tags && candidate.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {candidate.tags.slice(0, 2).map((t, idx) => (
+                            <span
+                              key={idx}
+                              className="px-1.5 py-0.2 rounded bg-stone-100 text-stone-600 text-[10px] border border-stone-200"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                          {candidate.tags.length > 2 && (
+                            <span className="text-[10px] text-ink-tertiary">
+                              +{candidate.tags.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* Experience */}

@@ -9,11 +9,24 @@ import {
   Trash2,
   Calendar,
   FileText,
-  Tag
+  Tag,
+  Star,
+  Check,
+  ChevronRight,
+  Send,
+  MessageSquare,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import { Candidate, HIRING_STAGES, HiringStage } from '../../types';
 import { StageBadge } from '../../components/StageBadge';
-import { updateCandidateStage, deleteCandidate, getApiErrorMessage } from '../../lib/api';
+import {
+  updateCandidateStage,
+  updateCandidate,
+  addCandidateNote,
+  deleteCandidate,
+  getApiErrorMessage
+} from '../../lib/api';
 import { useToast } from '../../components/Toast';
 
 interface CandidateDrawerProps {
@@ -24,6 +37,41 @@ interface CandidateDrawerProps {
   onCandidateUpdated?: (candidate: Candidate) => void;
 }
 
+const LINEAR_STAGES: HiringStage[] = [
+  'Applied',
+  'Screening',
+  'Interview',
+  'Offer',
+  'Hired'
+];
+
+const STAGE_NEXT_MAP: Record<HiringStage, HiringStage | null> = {
+  Applied: 'Screening',
+  Screening: 'Interview',
+  Interview: 'Offer',
+  Offer: 'Hired',
+  Hired: null,
+  Rejected: null
+};
+
+const NOTE_CATEGORIES = [
+  'General Note',
+  'Phone Screen',
+  'Technical Interview',
+  'Culture Fit',
+  'Offer Discussion',
+  'Reference Check'
+];
+
+const COMMON_TAGS = [
+  'Top Talent',
+  'Referral',
+  'Immediate Joiner',
+  'High Priority',
+  'Strong Communicator',
+  'Ex-FAANG'
+];
+
 export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
   candidate: initialCandidate,
   isOpen,
@@ -33,8 +81,18 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 }) => {
   const { showToast } = useToast();
   const [candidate, setCandidate] = useState<Candidate | null>(initialCandidate);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingStage, setIsUpdatingStage] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Note composer state
+  const [noteCategory, setNoteCategory] = useState('General Note');
+  const [noteText, setNoteText] = useState('');
+  const [isPostingNote, setIsPostingNote] = useState(false);
+
+  // Tag input state
+  const [newTagInput, setNewTagInput] = useState('');
+  const [isAddingTag, setIsAddingTag] = useState(false);
 
   useEffect(() => {
     setCandidate(initialCandidate);
@@ -51,11 +109,15 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
   if (!isOpen || !candidate) return null;
 
+  const currentStageIndex = LINEAR_STAGES.indexOf(candidate.stage);
+  const isRejected = candidate.stage === 'Rejected';
+  const nextStage = STAGE_NEXT_MAP[candidate.stage];
+
   const handleStageChange = async (newStage: HiringStage) => {
     if (candidate.stage === newStage) return;
 
     try {
-      setIsUpdating(true);
+      setIsUpdatingStage(true);
       const updated = await updateCandidateStage(candidate._id, candidate.stage, newStage);
       setCandidate(updated);
       onCandidateUpdated?.(updated);
@@ -63,13 +125,86 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       onRefresh();
     } catch (err: any) {
       if (err.response?.status === 409) {
-        showToast('Candidate was updated in another session. Refreshed.', 'warning');
+        showToast('Candidate was updated elsewhere. Refreshed.', 'warning');
       } else {
         showToast(getApiErrorMessage(err), 'error');
       }
       onRefresh();
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingStage(false);
+    }
+  };
+
+  const handleRatingChange = async (newRating: number) => {
+    try {
+      setIsUpdatingProfile(true);
+      const updated = await updateCandidate(candidate._id, { rating: newRating });
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
+      showToast(`Updated rating for ${candidate.name} to ${newRating} stars`, 'success');
+      onRefresh();
+    } catch (err: any) {
+      showToast(getApiErrorMessage(err), 'error');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleAddTag = async (tagToAdd: string) => {
+    const trimmed = tagToAdd.trim();
+    if (!trimmed) return;
+    const currentTags = candidate.tags || [];
+    if (currentTags.includes(trimmed)) return;
+
+    const updatedTags = [...currentTags, trimmed];
+    try {
+      setIsUpdatingProfile(true);
+      const updated = await updateCandidate(candidate._id, { tags: updatedTags });
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
+      setNewTagInput('');
+      setIsAddingTag(false);
+      showToast(`Tag added`, 'success');
+      onRefresh();
+    } catch (err: any) {
+      showToast(getApiErrorMessage(err), 'error');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleRemoveTag = async (tagToRemove: string) => {
+    const updatedTags = (candidate.tags || []).filter((t) => t !== tagToRemove);
+    try {
+      setIsUpdatingProfile(true);
+      const updated = await updateCandidate(candidate._id, { tags: updatedTags });
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
+      showToast(`Tag removed`, 'info');
+      onRefresh();
+    } catch (err: any) {
+      showToast(getApiErrorMessage(err), 'error');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handlePostNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+
+    try {
+      setIsPostingNote(true);
+      const updated = await addCandidateNote(candidate._id, noteText.trim(), noteCategory);
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
+      setNoteText('');
+      showToast('Interview feedback logged to timeline', 'success');
+      onRefresh();
+    } catch (err: any) {
+      showToast(getApiErrorMessage(err), 'error');
+    } finally {
+      setIsPostingNote(false);
     }
   };
 
@@ -113,7 +248,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       aria-labelledby="drawer-title"
     >
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-surface border-l border-subtle shadow-xl flex flex-col">
+        <div className="w-screen max-w-lg bg-surface border-l border-subtle shadow-xl flex flex-col">
           {/* Header */}
           <div className="p-5 border-b border-subtle flex items-start justify-between bg-stone-50/50">
             <div className="flex items-center gap-3">
@@ -145,33 +280,192 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
           {/* Drawer Body */}
           <div className="flex-1 overflow-y-auto p-5 space-y-6 text-xs">
-            {/* Quick Stage Transition Selector */}
-            <div className="p-3.5 rounded border border-subtle bg-canvas space-y-2">
+            {/* Visual Stage Stepper Bar */}
+            <div className="p-3.5 rounded border border-subtle bg-canvas space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-ink-primary text-xs">Current Stage</span>
+                <span className="font-semibold text-ink-primary text-xs uppercase tracking-wider text-ink-tertiary">
+                  Hiring Pipeline Progression
+                </span>
                 <StageBadge stage={candidate.stage} />
               </div>
-              <div className="flex items-center gap-2 pt-1">
-                <label className="text-ink-secondary text-[11px]">Move stage to:</label>
-                <select
-                  value={candidate.stage}
-                  onChange={(e) => handleStageChange(e.target.value as HiringStage)}
-                  disabled={isUpdating}
-                  data-testid="drawer-stage-select"
-                  className="flex-1 px-2 py-1 text-xs bg-surface border border-subtle rounded text-ink-primary font-medium focus:outline-none focus:ring-1 focus:ring-accent"
+
+              {/* Stepper Chevrons */}
+              {!isRejected ? (
+                <div
+                  data-testid="stage-stepper-bar"
+                  className="grid grid-cols-5 gap-1 pt-1"
                 >
-                  {HIRING_STAGES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                  {LINEAR_STAGES.map((stg, idx) => {
+                    const isPassed = currentStageIndex > idx;
+                    const isCurrent = currentStageIndex === idx;
+
+                    return (
+                      <button
+                        key={stg}
+                        onClick={() => handleStageChange(stg)}
+                        disabled={isUpdatingStage}
+                        data-testid={`stepper-step-${stg.toLowerCase()}`}
+                        className={`py-1.5 px-1 rounded text-[11px] font-medium text-center flex items-center justify-center gap-1 transition-all border ${
+                          isCurrent
+                            ? 'bg-accent text-white border-accent shadow-xs'
+                            : isPassed
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-surface text-ink-tertiary border-subtle hover:text-ink-primary hover:bg-stone-50'
+                        }`}
+                        title={`Move candidate to ${stg}`}
+                      >
+                        {isPassed && <Check className="w-3 h-3 text-emerald-600" />}
+                        <span className="truncate">{stg}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-2.5 rounded bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600" />
+                    <span className="font-medium text-xs">Candidate is currently marked as Rejected</span>
+                  </div>
+                  <button
+                    onClick={() => handleStageChange('Screening')}
+                    disabled={isUpdatingStage}
+                    className="px-2 py-1 text-[11px] font-medium bg-surface hover:bg-white text-ink-primary border border-subtle rounded flex items-center gap-1 shadow-xs transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reopen Candidate
+                  </button>
+                </div>
+              )}
+
+              {/* Quick 1-Click Action Buttons */}
+              <div className="flex items-center gap-2 pt-1 border-t border-subtle">
+                {nextStage && (
+                  <button
+                    onClick={() => handleStageChange(nextStage)}
+                    disabled={isUpdatingStage}
+                    data-testid="advance-stage-btn"
+                    className="flex-1 py-1.5 px-3 text-xs font-medium text-white bg-accent hover:bg-accent-hover rounded flex items-center justify-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                  >
+                    <span>Advance to {nextStage}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                {!isRejected && candidate.stage !== 'Hired' && (
+                  <button
+                    onClick={() => handleStageChange('Rejected')}
+                    disabled={isUpdatingStage}
+                    data-testid="reject-candidate-btn"
+                    className="py-1.5 px-3 text-xs font-medium text-rose-700 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 rounded flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    Reject Candidate
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Candidate Rating & Quick Tags */}
+            <div className="p-3.5 rounded border border-subtle bg-surface space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-ink-primary text-xs uppercase tracking-wider text-ink-tertiary">
+                  Candidate Rating
+                </span>
+                {/* 5-Star Rating Selector */}
+                <div
+                  data-testid="candidate-rating-stars"
+                  className="flex items-center gap-1 text-amber-500 cursor-pointer"
+                >
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleRatingChange(s)}
+                      disabled={isUpdatingProfile}
+                      aria-label={`Rate ${s} stars`}
+                      className="p-0.5 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        className={`w-4 h-4 ${
+                          s <= (candidate.rating || 0)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-stone-300 hover:text-amber-200'
+                        }`}
+                      />
+                    </button>
                   ))}
-                </select>
+                  <span className="text-[11px] font-semibold text-ink-primary ml-1">
+                    {candidate.rating ? `${candidate.rating}/5` : 'Unrated'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tags Section */}
+              <div className="space-y-1.5 pt-2 border-t border-subtle">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-ink-secondary font-medium">Recruitment Tags</span>
+                  {!isAddingTag && (
+                    <button
+                      onClick={() => setIsAddingTag(true)}
+                      className="text-[11px] text-accent hover:underline font-medium"
+                    >
+                      + Add Tag
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {candidate.tags && candidate.tags.length > 0 ? (
+                    candidate.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200 text-[11px]"
+                      >
+                        {tag}
+                        <button
+                          onClick={() => handleRemoveTag(tag)}
+                          className="hover:text-rose-600 transition-colors"
+                          title={`Remove tag ${tag}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-ink-tertiary text-[11px]">No tags assigned</span>
+                  )}
+                </div>
+
+                {isAddingTag && (
+                  <div className="flex items-center gap-1.5 pt-1.5">
+                    <input
+                      type="text"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      placeholder="Tag (e.g. Referral, Top Talent)..."
+                      className="flex-1 px-2 py-1 text-xs bg-canvas border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    <button
+                      onClick={() => handleAddTag(newTagInput)}
+                      className="px-2.5 py-1 text-xs font-medium text-white bg-accent rounded"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAddingTag(false);
+                        setNewTagInput('');
+                      }}
+                      className="px-2 py-1 text-xs text-ink-secondary hover:text-ink-primary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Candidate Contact & Info */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-ink-primary uppercase tracking-wider text-[11px] text-ink-tertiary">
+              <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary">
                 Contact & Details
               </h3>
               <div className="space-y-2 text-ink-secondary">
@@ -236,23 +530,61 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               </div>
             )}
 
-            {/* Recruiter Notes */}
-            {candidate.notes && (
-              <div className="space-y-2">
-                <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary">
-                  Recruiter Notes
-                </h3>
-                <div className="p-3 bg-canvas border border-subtle rounded text-ink-primary leading-relaxed whitespace-pre-wrap">
-                  {candidate.notes}
-                </div>
+            {/* Add Recruiter Note / Interview Feedback Composer */}
+            <form
+              onSubmit={handlePostNote}
+              data-testid="add-note-form"
+              className="p-3.5 rounded border border-subtle bg-surface space-y-2.5"
+            >
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-ink-primary text-xs uppercase tracking-wider text-ink-tertiary flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Add Interview Feedback / Note
+                </label>
+                <select
+                  value={noteCategory}
+                  onChange={(e) => setNoteCategory(e.target.value)}
+                  className="px-2 py-0.5 text-[11px] bg-canvas border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                >
+                  {NOTE_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Log notes from screen, code review score, technical architecture observations..."
+                rows={3}
+                maxLength={2000}
+                data-testid="note-input"
+                className="w-full p-2.5 text-xs bg-canvas border border-subtle rounded text-ink-primary placeholder:text-ink-tertiary focus:outline-none focus:ring-1 focus:ring-accent leading-relaxed"
+              />
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] text-ink-tertiary">
+                  {noteText.length}/2000 characters
+                </span>
+                <button
+                  type="submit"
+                  disabled={isPostingNote || !noteText.trim()}
+                  data-testid="post-note-btn"
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-accent hover:bg-accent-hover rounded flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                >
+                  <Send className="w-3 h-3" />
+                  Post Feedback Note
+                </button>
+              </div>
+            </form>
 
             {/* Stage History Timeline */}
             <div className="space-y-3 pt-2">
               <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                Stage History Audit Trail
+                Stage History & Recruiter Audit Trail
               </h3>
               <div
                 data-testid="stage-history-timeline"
@@ -264,14 +596,20 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                     <div className="bg-surface border border-subtle rounded p-2.5 space-y-1">
                       <div className="flex items-center justify-between font-medium text-ink-primary">
                         <span>
-                          {item.from ? `${item.from} → ${item.to}` : `Initial: ${item.to}`}
+                          {item.from === item.to
+                            ? 'Recruiter Feedback Log'
+                            : item.from
+                            ? `${item.from} → ${item.to}`
+                            : `Initial: ${item.to}`}
                         </span>
                         <span className="text-[10px] text-ink-tertiary">
                           {formatTimestamp(item.changedAt)}
                         </span>
                       </div>
                       {item.notes && (
-                        <p className="text-[11px] text-ink-secondary italic">{item.notes}</p>
+                        <p className="text-[11px] text-ink-secondary leading-relaxed whitespace-pre-wrap">
+                          {item.notes}
+                        </p>
                       )}
                     </div>
                   </div>

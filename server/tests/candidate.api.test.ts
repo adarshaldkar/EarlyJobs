@@ -334,4 +334,77 @@ describe('Candidate API & Business Logic Integration Tests', () => {
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('BAD_REQUEST');
   });
+
+  // =========================================================================
+  // Test 9: Recruiter Note & Feedback Composer
+  // =========================================================================
+  it('Test 9: appends recruiter feedback note to candidate audit trail', async () => {
+    const candidate = await Candidate.create({
+      name: 'Audit Trail Candidate',
+      email: 'feedback@example.com',
+      position: 'Backend Developer',
+      experienceYears: 4,
+      stage: 'Interview'
+    });
+
+    const res = await request(app)
+      .post(`/api/candidates/${candidate._id}/notes`)
+      .send({
+        note: 'Candidate aced the systems design round with distributed lock analysis.',
+        category: 'Technical Interview'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.stageHistory.length).toBe(2);
+    const latestEntry = res.body.data.stageHistory[1];
+    expect(latestEntry.notes).toBe(
+      '[Technical Interview] Candidate aced the systems design round with distributed lock analysis.'
+    );
+    expect(latestEntry.from).toBe('Interview');
+    expect(latestEntry.to).toBe('Interview');
+  });
+
+  // =========================================================================
+  // Test 10: Rating and Tags Support
+  // =========================================================================
+  it('Test 10: validates rating range (0-5) and supports tags in create and patch', async () => {
+    // 1. Create with rating and tags
+    const createRes = await request(app)
+      .post('/api/candidates')
+      .send({
+        name: 'Top Talent Lead',
+        email: 'toptalent@example.com',
+        position: 'Full Stack Engineer',
+        experienceYears: 6,
+        rating: 5,
+        tags: ['Top Talent', 'Referral']
+      });
+
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.data.rating).toBe(5);
+    expect(createRes.body.data.tags).toEqual(['Top Talent', 'Referral']);
+
+    // 2. Patch rating and tags
+    const patchRes = await request(app)
+      .patch(`/api/candidates/${createRes.body.data._id}`)
+      .send({
+        rating: 4,
+        tags: ['Top Talent', 'Immediate Joiner']
+      });
+
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.data.rating).toBe(4);
+    expect(patchRes.body.data.tags).toEqual(['Top Talent', 'Immediate Joiner']);
+
+    // 3. Reject invalid rating (> 5)
+    const invalidRatingRes = await request(app)
+      .patch(`/api/candidates/${createRes.body.data._id}`)
+      .send({
+        rating: 6
+      });
+
+    expect(invalidRatingRes.status).toBe(400);
+  });
 });
+

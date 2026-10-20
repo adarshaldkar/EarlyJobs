@@ -4,7 +4,8 @@ import {
   createCandidateSchema,
   updateCandidateSchema,
   updateStageSchema,
-  queryCandidatesSchema
+  queryCandidatesSchema,
+  addNoteSchema
 } from '../schemas/candidate.schema.js';
 
 export class CandidateController {
@@ -94,6 +95,28 @@ export class CandidateController {
         validated.currentStage,
         validated.newStage,
         validated.notes
+      );
+
+      res.status(200).json({
+        success: true,
+        data: updated
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async addNote(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const validated = addNoteSchema.parse(req.body);
+      const updated = await CandidateService.addNote(
+        req.params.id,
+        validated.note,
+        validated.category
       );
 
       res.status(200).json({

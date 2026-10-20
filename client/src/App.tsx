@@ -12,11 +12,14 @@ import { Candidate, HiringStage } from './types';
 import {
   fetchCandidates,
   fetchDashboardSummary,
+  updateCandidateStage,
+  getApiErrorMessage,
   apiClient
 } from './lib/api';
 import { ToastProvider, useToast } from './components/Toast';
 import { CandidateFilters } from './features/candidates/CandidateFilters';
 import { CandidateTable } from './features/candidates/CandidateTable';
+import { PipelineBoard } from './features/candidates/PipelineBoard';
 import { CandidateModal } from './features/candidates/CandidateModal';
 import { CandidateDrawer } from './features/candidates/CandidateDrawer';
 import { KpiCards } from './features/dashboard/KpiCards';
@@ -29,13 +32,17 @@ function AtsWorkspace() {
   // Navigation tab: 'directory' | 'dashboard'
   const [activeTab, setActiveTab] = useState<'directory' | 'dashboard'>('directory');
 
+  // View mode: 'board' | 'table'
+  const [viewMode, setViewMode] = useState<'board' | 'table'>('table');
+
   // Filter and sort state
   const [search, setSearch] = useState('');
   const [selectedStage, setSelectedStage] = useState('');
+  const [selectedPosition, setSelectedPosition] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = viewMode === 'board' ? 50 : 10;
 
   // Modal & Drawer UI state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,12 +70,13 @@ function AtsWorkspace() {
     isRefetching: isRefetchingCandidates,
     refetch: refetchCandidates
   } = useQuery({
-    queryKey: ['candidates', { page, limit, search, stage: selectedStage, sortBy, sortOrder }],
+    queryKey: ['candidates', { page, limit, search, position: selectedPosition, stage: selectedStage, sortBy, sortOrder }],
     queryFn: () =>
       fetchCandidates({
         page,
         limit,
         search: search || undefined,
+        position: selectedPosition || undefined,
         stage: selectedStage || undefined,
         sortBy,
         sortOrder
@@ -96,6 +104,21 @@ function AtsWorkspace() {
   const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
     setIsDrawerOpen(true);
+  };
+
+  const handleBoardStageChange = async (candidate: Candidate, newStage: HiringStage) => {
+    try {
+      await updateCandidateStage(candidate._id, candidate.stage, newStage);
+      showToast(`Moved ${candidate.name} to ${newStage}`, 'success');
+      handleRefreshAll();
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        showToast('Candidate was updated elsewhere. Refreshed.', 'warning');
+      } else {
+        showToast(getApiErrorMessage(err), 'error');
+      }
+      handleRefreshAll();
+    }
   };
 
   const handleCandidateCreated = () => {
@@ -224,6 +247,11 @@ function AtsWorkspace() {
                 setSelectedStage(stg);
                 setPage(1);
               }}
+              selectedPosition={selectedPosition}
+              onPositionChange={(pos) => {
+                setSelectedPosition(pos);
+                setPage(1);
+              }}
               sortBy={sortBy}
               sortOrder={sortOrder}
               onSortChange={(newSortBy, newSortOrder) => {
@@ -231,18 +259,29 @@ function AtsWorkspace() {
                 setSortOrder(newSortOrder);
                 setPage(1);
               }}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
               onOpenCreateModal={() => setIsModalOpen(true)}
               totalCandidates={pagination.total}
             />
 
-            <CandidateTable
-              candidates={candidates}
-              pagination={pagination}
-              onPageChange={(newPage) => setPage(newPage)}
-              onSelectCandidate={handleSelectCandidate}
-              onRefresh={handleRefreshAll}
-              isLoading={isLoadingCandidates}
-            />
+            {viewMode === 'table' ? (
+              <CandidateTable
+                candidates={candidates}
+                pagination={pagination}
+                onPageChange={(newPage) => setPage(newPage)}
+                onSelectCandidate={handleSelectCandidate}
+                onRefresh={handleRefreshAll}
+                isLoading={isLoadingCandidates}
+              />
+            ) : (
+              <PipelineBoard
+                candidates={candidates}
+                onSelectCandidate={handleSelectCandidate}
+                onStageChange={handleBoardStageChange}
+                isLoading={isLoadingCandidates}
+              />
+            )}
           </div>
         ) : (
           /* Dashboard & Pipeline View */
