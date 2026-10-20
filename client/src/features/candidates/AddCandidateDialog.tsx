@@ -101,7 +101,7 @@ export default function AddCandidateDialog({
     reset,
     formState: { errors, isSubmitting }
   } = useForm<FormInput, unknown, FormValues>({
-    resolver: zodResolver(candidateFormSchema),
+    resolver: zodResolver(candidateFormSchema) as any,
     defaultValues: {
       name: '',
       email: '',
