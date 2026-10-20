@@ -200,79 +200,79 @@ function AtsWorkspace() {
       {/* Main Recruiter Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-14 border-b border-subtle bg-surface px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+        <header className="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10 shadow-2xs">
           <div className="flex items-center gap-3 sm:gap-6 min-w-0">
             {/* Mobile Brand Badge */}
             <div className="flex md:hidden items-center gap-2 shrink-0">
-              <div className="w-7 h-7 rounded bg-accent flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm shadow-indigo-500/20">
                 EJ
               </div>
             </div>
 
             {/* Top Navigation Tabs */}
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setActiveView('candidates')}
                 data-testid="nav-tab-directory"
-                className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'candidates'
-                    ? 'bg-stone-100 text-ink-primary font-semibold'
-                    : 'text-ink-secondary hover:text-ink-primary hover:bg-stone-50'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Users className="w-3.5 h-3.5" />
+                <Users className="w-4 h-4" />
                 <span>Candidates</span>
               </button>
 
               <button
                 onClick={() => setActiveView('overview')}
                 data-testid="nav-tab-dashboard"
-                className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'overview'
-                    ? 'bg-stone-100 text-ink-primary font-semibold'
-                    : 'text-ink-secondary hover:text-ink-primary hover:bg-stone-50'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <LayoutDashboard className="w-3.5 h-3.5" />
+                <LayoutDashboard className="w-4 h-4" />
                 <span>Overview</span>
               </button>
 
               <button
                 onClick={() => setActiveView('jobs')}
                 data-testid="nav-jobs"
-                className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'jobs'
-                    ? 'bg-stone-100 text-ink-primary font-semibold'
-                    : 'text-ink-secondary hover:text-ink-primary hover:bg-stone-50'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5" />
+                <Briefcase className="w-4 h-4" />
                 <span>Jobs ({jobsData.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveView('pipeline')}
                 data-testid="nav-pipeline"
-                className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'pipeline'
-                    ? 'bg-stone-100 text-ink-primary font-semibold'
-                    : 'text-ink-secondary hover:text-ink-primary hover:bg-stone-50'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Kanban className="w-3.5 h-3.5" />
+                <Kanban className="w-4 h-4" />
                 <span>Pipeline</span>
               </button>
 
               <button
                 onClick={() => setActiveView('interviews')}
                 data-testid="nav-interviews"
-                className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
                   activeView === 'interviews'
-                    ? 'bg-stone-100 text-ink-primary font-semibold'
-                    : 'text-ink-secondary hover:text-ink-primary hover:bg-stone-50'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5" />
+                <Calendar className="w-4 h-4" />
                 <span>Interviews ({upcomingInterviews.length})</span>
               </button>
             </nav>
@@ -284,34 +284,34 @@ function AtsWorkspace() {
               onClick={handleRefreshAll}
               disabled={isRefetchingCandidates}
               data-testid="refresh-btn"
-              className="p-1.5 text-ink-secondary hover:text-ink-primary rounded hover:bg-stone-100 transition-colors cursor-pointer"
+              className="p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
               title="Refresh workspace data"
               aria-label="Refresh workspace data"
             >
               <RefreshCw
-                className={`w-3.5 h-3.5 ${isRefetchingCandidates ? 'animate-spin text-accent' : ''}`}
+                className={`w-4 h-4 ${isRefetchingCandidates ? 'animate-spin text-indigo-600' : ''}`}
               />
             </button>
 
             <div
-              className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded border ${
+              className={`text-xs flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold shadow-2xs ${
                 healthData?.status === 'healthy'
-                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  ? 'text-emerald-700 bg-emerald-50/80 border-emerald-200/80'
                   : isHealthLoading
-                  ? 'text-amber-700 bg-amber-50 border-amber-200'
-                  : 'text-rose-700 bg-rose-50 border-rose-200'
+                  ? 'text-amber-700 bg-amber-50/80 border-amber-200/80'
+                  : 'text-rose-700 bg-rose-50/80 border-rose-200/80'
               }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
+                className={`h-2 w-2 rounded-full ${
                   healthData?.status === 'healthy'
-                    ? 'bg-emerald-500'
+                    ? 'bg-emerald-500 shadow-xs shadow-emerald-500/50'
                     : isHealthLoading
                     ? 'bg-amber-500 animate-pulse'
                     : 'bg-rose-500'
                 }`}
               />
-              <span className="hidden sm:inline font-medium">
+              <span className="hidden sm:inline">
                 {healthData?.status === 'healthy'
                   ? 'System Healthy'
                   : isHealthLoading
@@ -323,8 +323,8 @@ function AtsWorkspace() {
         </header>
 
         {/* Workspace Scrollable Body */}
-        <main className="flex-1 overflow-y-auto p-6 bg-canvas">
-          <div className="max-w-6xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-slate-50/60">
+          <div className="max-w-7xl mx-auto space-y-6">
             {/* View 1: Overview */}
             {activeView === 'overview' && (
               <div className="space-y-6 animate-in fade-in">
@@ -341,107 +341,107 @@ function AtsWorkspace() {
                   </div>
 
                   {/* Recruiter Action Center */}
-                  <div className="p-4 rounded-lg border border-subtle bg-surface flex flex-col justify-between shadow-xs">
+                  <div className="p-6 rounded-2xl border border-slate-200/80 bg-white flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
                     <div>
                       <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-bold text-ink-primary uppercase tracking-wider">
+                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                           Recruitment Action Center
                         </h3>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
-                          Live Pipeline
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                          Live Engine
                         </span>
                       </div>
-                      <p className="text-[11px] text-ink-secondary mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         Accelerate hiring loops and candidate triage.
                       </p>
 
-                      <div className="mt-4 space-y-2">
+                      <div className="mt-5 space-y-2.5">
                         <button
                           onClick={() => setIsModalOpen(true)}
-                          className="w-full py-2 px-3 text-xs font-medium text-white bg-accent hover:bg-accent/90 rounded-md shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="w-full py-2.5 px-4 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl shadow-sm shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                           <span>Add Candidate</span>
                         </button>
 
                         <button
                           onClick={() => setActiveView('pipeline')}
-                          className="w-full py-2 px-3 text-xs font-medium text-ink-primary bg-stone-100 hover:bg-stone-200/80 rounded-md border border-stone-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="w-full py-2.5 px-4 text-xs font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
-                          <Kanban className="w-3.5 h-3.5 text-accent" />
+                          <Kanban className="w-4 h-4 text-indigo-600" />
                           <span>Open Visual Kanban Board</span>
                         </button>
 
                         <button
                           onClick={() => setActiveView('jobs')}
-                          className="w-full py-2 px-3 text-xs font-medium text-ink-secondary hover:text-ink-primary bg-surface hover:bg-stone-100 rounded-md border border-subtle flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="w-full py-2.5 px-4 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
-                          <Briefcase className="w-3.5 h-3.5" />
+                          <Briefcase className="w-4 h-4 text-slate-500" />
                           <span>Manage Job Openings ({jobsData.length})</span>
                         </button>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-subtle mt-4 text-[11px] text-ink-tertiary leading-relaxed">
-                      <strong>Audit Consistency:</strong> Real-time single-query facet aggregation ensures
+                    <div className="pt-4 border-t border-slate-100 mt-5 text-[11px] text-slate-400 leading-relaxed">
+                      <strong className="text-slate-600">Audit Consistency:</strong> Real-time single-query facet aggregation ensures
                       Total = Sum of Stage Counts across all 6 hiring stages.
                     </div>
                   </div>
                 </div>
 
                 {/* Upcoming Interviews Quick Widget */}
-                <div className="bg-surface rounded-lg border border-subtle overflow-hidden shadow-xs">
-                  <div className="px-5 py-3.5 border-b border-subtle flex items-center justify-between bg-canvas">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-accent" />
-                      <h3 className="text-xs font-bold text-ink-primary uppercase tracking-wider">
+                <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className="w-4 h-4 text-indigo-600" />
+                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                         Upcoming Interview Schedule
                       </h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-bold">
                         {upcomingInterviews.length} Scheduled
                       </span>
                     </div>
 
                     <button
                       onClick={() => setActiveView('interviews')}
-                      className="text-xs font-medium text-accent hover:underline flex items-center gap-1"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline cursor-pointer"
                     >
                       <span>View All Interview Loops</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div className="divide-y divide-subtle">
+                  <div className="divide-y divide-slate-100">
                     {upcomingInterviews.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-ink-tertiary">
+                      <div className="p-8 text-center text-xs text-slate-400">
                         No interview loops currently scheduled for today.
                       </div>
                     ) : (
                       upcomingInterviews.slice(0, 3).map((item) => (
                         <div
                           key={item._id}
-                          className="px-5 py-3 flex items-center justify-between hover:bg-stone-50/70 transition-colors"
+                          className="px-6 py-3.5 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 text-accent font-semibold text-xs flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-xs flex items-center justify-center">
                               {item.candidateName.charAt(0)}
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-ink-primary">
+                              <p className="text-xs font-bold text-slate-900">
                                 {item.candidateName}{' '}
-                                <span className="font-normal text-ink-tertiary">
+                                <span className="font-normal text-slate-400">
                                   — {item.position}
                                 </span>
                               </p>
-                              <p className="text-[11px] text-ink-secondary">
+                              <p className="text-[11px] text-slate-500">
                                 {item.round} · with{' '}
-                                <span className="font-medium text-ink-primary">{item.interviewer}</span>
+                                <span className="font-semibold text-slate-700">{item.interviewer}</span>
                               </p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-3">
-                            <span className="text-xs text-ink-tertiary flex items-center gap-1">
+                            <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
                               <Clock className="w-3.5 h-3.5" />
                               {new Date(item.scheduledAt).toLocaleDateString(undefined, {
                                 month: 'short',
@@ -468,9 +468,9 @@ function AtsWorkspace() {
                 </div>
 
                 {/* Recent Applicants Table */}
-                <div className="bg-surface rounded-lg border border-subtle overflow-hidden shadow-xs">
-                  <div className="px-5 py-3.5 border-b border-subtle flex items-center justify-between bg-canvas">
-                    <h3 className="text-xs font-bold text-ink-primary uppercase tracking-wider">
+                <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                       Recent Candidate Applications
                     </h3>
                     <button
@@ -479,7 +479,7 @@ function AtsWorkspace() {
                         setSelectedStage('');
                         setActiveView('candidates');
                       }}
-                      className="text-xs font-medium text-accent hover:underline flex items-center gap-1"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <span>Explore Candidate Directory</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -514,7 +514,7 @@ function AtsWorkspace() {
 
             {/* View 3: Candidate Directory */}
             {activeView === 'candidates' && (
-              <div className="space-y-4 animate-in fade-in">
+              <div className="space-y-5 animate-in fade-in">
                 {/* Recruitment KPIs Strip */}
                 <KpiCards summary={dashboardData || null} isLoading={isLoadingDashboard} />
 
@@ -569,25 +569,25 @@ function AtsWorkspace() {
 
             {/* View 4: Hiring Pipeline (Visual Kanban Board) */}
             {activeView === 'pipeline' && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between pb-3 border-b border-subtle">
+              <div className="space-y-5 animate-in fade-in">
+                <div className="p-6 rounded-2xl border border-slate-200/80 bg-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-xl font-bold tracking-tight text-ink-primary flex items-center gap-2">
+                    <h1 className="text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5">
                       <span>Visual Hiring Pipeline</span>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
                         Kanban Board
                       </span>
                     </h1>
-                    <p className="text-xs text-ink-tertiary mt-0.5">
+                    <p className="text-xs text-slate-500 mt-1">
                       Drag or move applicants across 6 recruitment stages. Click any candidate card to open their dossier.
                     </p>
                   </div>
 
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-3.5 py-1.5 text-xs font-semibold text-white bg-accent hover:bg-accent/90 rounded-md shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl shadow-sm shadow-indigo-500/20 flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.98]"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     <span>Add Candidate</span>
                   </button>
                 </div>
