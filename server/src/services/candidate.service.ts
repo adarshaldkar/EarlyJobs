@@ -21,6 +21,15 @@ export class CandidateService {
   static async createCandidate(
     data: CreateCandidateInput
   ): Promise<ICandidateDocument> {
+    const totalCount = await Candidate.countDocuments();
+    if (totalCount >= 200) {
+      throw new ApiError(
+        422,
+        'CAPACITY_EXCEEDED',
+        'Demo database capacity reached (maximum 200 candidates allowed)'
+      );
+    }
+
     const initialStage = data.stage || 'Applied';
 
     try {
@@ -32,7 +41,7 @@ export class CandidateService {
             from: null,
             to: initialStage,
             changedAt: new Date(),
-            notes: data.notes || 'Initial application'
+            notes: 'Candidate registered in ATS'
           }
         ]
       });

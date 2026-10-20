@@ -66,7 +66,31 @@ export const errorHandler = (
     return;
   }
 
-  // 5. Unhandled / Internal Server Errors
+  // 5. Malformed JSON Body
+  if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400 && 'body' in err) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'BAD_REQUEST',
+        message: 'Malformed JSON payload'
+      }
+    });
+    return;
+  }
+
+  // 6. Request Entity Too Large (> 10kb)
+  if ((err as any).type === 'entity.too.large') {
+    res.status(413).json({
+      success: false,
+      error: {
+        code: 'PAYLOAD_TOO_LARGE',
+        message: 'Request payload exceeds 10kb limit'
+      }
+    });
+    return;
+  }
+
+  // 7. Unhandled / Internal Server Errors
   console.error('\x1b[31m%s\x1b[0m', '💥 [server] Uncaught Exception:', err);
 
   const message = env.NODE_ENV === 'production' 

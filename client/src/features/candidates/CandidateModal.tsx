@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -69,13 +69,22 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
     }
   });
 
-  if (!isOpen) return null;
-
   const handleClose = () => {
     setServerError(null);
     reset();
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -160,10 +169,11 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Full Name */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-ink-primary mb-1">
+              <label htmlFor="field-name" className="block text-xs font-medium text-ink-primary mb-1">
                 Full Name <span className="text-rose-600">*</span>
               </label>
               <input
+                id="field-name"
                 type="text"
                 {...register('name')}
                 placeholder="e.g. Aarav Patel"
@@ -179,10 +189,11 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">
+              <label htmlFor="field-email" className="block text-xs font-medium text-ink-primary mb-1">
                 Email Address <span className="text-rose-600">*</span>
               </label>
               <input
+                id="field-email"
                 type="email"
                 {...register('email')}
                 placeholder="aarav.patel@example.com"
@@ -198,8 +209,9 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Phone */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">Phone Number</label>
+              <label htmlFor="field-phone" className="block text-xs font-medium text-ink-primary mb-1">Phone Number</label>
               <input
+                id="field-phone"
                 type="tel"
                 {...register('phone')}
                 placeholder="+91 98765 43210"
@@ -211,10 +223,11 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Position */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">
+              <label htmlFor="field-position" className="block text-xs font-medium text-ink-primary mb-1">
                 Target Position <span className="text-rose-600">*</span>
               </label>
               <input
+                id="field-position"
                 type="text"
                 {...register('position')}
                 placeholder="e.g. Frontend Engineer"
@@ -230,10 +243,11 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Experience Years */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">
+              <label htmlFor="field-experience" className="block text-xs font-medium text-ink-primary mb-1">
                 Experience (Years) <span className="text-rose-600">*</span>
               </label>
               <input
+                id="field-experience"
                 type="number"
                 step="1"
                 min="0"
@@ -251,8 +265,9 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Initial Stage */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">Initial Stage</label>
+              <label htmlFor="field-stage" className="block text-xs font-medium text-ink-primary mb-1">Initial Stage</label>
               <select
+                id="field-stage"
                 {...register('stage')}
                 data-testid="select-initial-stage"
                 className="w-full px-3 py-2 text-xs bg-canvas border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
@@ -267,8 +282,9 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Resume URL */}
             <div>
-              <label className="block text-xs font-medium text-ink-primary mb-1">Resume Link (URL)</label>
+              <label htmlFor="field-resume-url" className="block text-xs font-medium text-ink-primary mb-1">Resume Link (URL)</label>
               <input
+                id="field-resume-url"
                 type="url"
                 {...register('resumeUrl')}
                 placeholder="https://drive.google.com/..."
@@ -284,10 +300,11 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Skills */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-ink-primary mb-1">
+              <label htmlFor="field-skills" className="block text-xs font-medium text-ink-primary mb-1">
                 Skills (comma-separated)
               </label>
               <input
+                id="field-skills"
                 type="text"
                 {...register('skills')}
                 placeholder="React, TypeScript, Node.js, MongoDB"
@@ -298,8 +315,9 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
             {/* Notes */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-ink-primary mb-1">Recruiter Notes</label>
+              <label htmlFor="field-notes" className="block text-xs font-medium text-ink-primary mb-1">Recruiter Notes</label>
               <textarea
+                id="field-notes"
                 rows={2}
                 {...register('notes')}
                 placeholder="Initial recruiter impressions, interview notes, etc."

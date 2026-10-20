@@ -4,7 +4,7 @@
 > **Candidate Assignment:** Full Stack Developer Intern (Bengaluru Office)  
 > **Primary Tech Stack:** Full MERN + TypeScript (React 18, Vite, Tailwind CSS, Node.js, Express, MongoDB Atlas, Mongoose)  
 > **Target Effort:** ~6 Hours | **Single Source of Truth:** `docs/architecture.md`  
-> **Status:** Phase 1 Scaffolding Initiated 🚀  
+> **Status:** Phases 1–4 Verified & Implemented, Phase 5 Deployment Infrastructure Configured 🚀  
 
 ---
 
@@ -12,11 +12,11 @@
 
 | Block | Planned Time | Output / Milestone | Status |
 |---|---|---|---|
-| **Block 1** | 0:00 – 0:30 (30m) | Monorepo scaffolding, TypeScript configs, env validation, Mongoose connect & `/api/health`, Playwright E2E scaffold | ✅ Completed |
-| **Block 2** | 0:30 – 2:15 (1h 45m) | API endpoints, Zod schemas, single-query facet aggregation, 7 integration tests passing | ✅ Completed |
-| **Block 3** | 2:15 – 4:00 (1h 45m) | Candidate directory table, modal form, 409 stale-state toast, instant stage updater | ✅ Completed |
-| **Block 4** | 4:00 – 4:45 (45m) | Recruiter dashboard KPI cards, Recharts pipeline chart, candidate audit drawer | ✅ Completed |
-| **Block 5** | 4:45 – 5:30 (45m) | Production deployment (Render backend + Vercel frontend), remote MongoDB Atlas check, CLI seeding, Playwright E2E verification | ⏳ Pending |
+| **Block 1** | 0:00 – 0:30 (30m) | Monorepo scaffolding, TypeScript configs, env validation, Mongoose connect & `/api/health`, Playwright E2E scaffold | ✅ Completed & Verified |
+| **Block 2** | 0:30 – 2:15 (1h 45m) | API endpoints, Zod schemas, single-query facet aggregation, 10 integration tests passing | ✅ Completed & Verified |
+| **Block 3** | 2:15 – 4:00 (1h 45m) | Candidate directory table, modal form, 409 stale-state toast, instant stage updater | ✅ Completed & Verified |
+| **Block 4** | 4:00 – 4:45 (45m) | Recruiter dashboard KPI cards, Recharts pipeline chart, candidate audit drawer | ✅ Completed & Verified |
+| **Block 5** | 4:45 – 5:30 (45m) | Production deployment configs (Render blueprint + Vercel rewrite), CORS security, CLI seeding script, Playwright E2E verification | 🟡 Ready for Cloud Account Provisioning |
 | **Block 6** | 5:30 – 6:00 (30m) | Professional README with architecture diagrams, setup guide, and 60–90s demo video recording | ⏳ Pending |
 
 ---

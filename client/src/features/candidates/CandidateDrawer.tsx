@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Mail,
@@ -21,17 +21,33 @@ interface CandidateDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onRefresh: () => void;
+  onCandidateUpdated?: (candidate: Candidate) => void;
 }
 
 export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
-  candidate,
+  candidate: initialCandidate,
   isOpen,
   onClose,
-  onRefresh
+  onRefresh,
+  onCandidateUpdated
 }) => {
   const { showToast } = useToast();
+  const [candidate, setCandidate] = useState<Candidate | null>(initialCandidate);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setCandidate(initialCandidate);
+  }, [initialCandidate]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !candidate) return null;
 
@@ -40,7 +56,9 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
     try {
       setIsUpdating(true);
-      await updateCandidateStage(candidate._id, candidate.stage, newStage);
+      const updated = await updateCandidateStage(candidate._id, candidate.stage, newStage);
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
       showToast(`Moved ${candidate.name} to ${newStage}`, 'success');
       onRefresh();
     } catch (err: any) {

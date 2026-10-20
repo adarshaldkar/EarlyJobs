@@ -78,5 +78,18 @@ test.describe('E2E Test 2: Candidate Validation & Error Recovery', () => {
     // Verify form input remains intact so recruiter does not lose their typed work
     await expect(page.getByTestId('input-name')).toHaveValue('Duplicate Test User');
     await expect(page.getByTestId('input-position')).toHaveValue('DevOps Engineer');
+
+    // 3. Clean up created candidate to preserve database cleanliness
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await page.getByTestId('search-input').fill(testCandidate.email);
+    page.on('dialog', async (dialog) => {
+      await dialog.accept();
+    });
+    const deleteBtn = page.locator(`button[aria-label="Delete ${testCandidate.name}"]`);
+    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await deleteBtn.click();
+      await expect(page.getByTestId('toast-success')).toBeVisible();
+    }
   });
 });

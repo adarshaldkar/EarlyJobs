@@ -259,4 +259,79 @@ describe('Candidate API & Business Logic Integration Tests', () => {
     expect(rejected).toBe(1);
     expect(recentCandidates).toHaveLength(5); // capped at recent 5
   });
+
+  // =========================================================================
+  // Test 6: Direct API Payload Validation Edge Cases
+  // =========================================================================
+  it('Test 6: enforces strict server-side Zod validation on direct API payloads', async () => {
+    // 1. Missing required name
+    const missingName = await request(app).post('/api/candidates').send({
+      email: 'test@example.com',
+      position: 'Engineer',
+      experienceYears: 2
+    });
+    expect(missingName.status).toBe(400);
+    expect(missingName.body.error.code).toBe('VALIDATION_ERROR');
+
+    // 2. Malformed email address
+    const malformedEmail = await request(app).post('/api/candidates').send({
+      name: 'Test Candidate',
+      email: 'not-an-email',
+      position: 'Engineer',
+      experienceYears: 2
+    });
+    expect(malformedEmail.status).toBe(400);
+
+    // 3. Negative experience years
+    const negativeExp = await request(app).post('/api/candidates').send({
+      name: 'Test Candidate',
+      email: 'neg@example.com',
+      position: 'Engineer',
+      experienceYears: -3
+    });
+    expect(negativeExp.status).toBe(400);
+
+    // 4. Disallowed resume URL protocol (e.g. javascript:)
+    const invalidResume = await request(app).post('/api/candidates').send({
+      name: 'Test Candidate',
+      email: 'proto@example.com',
+      position: 'Engineer',
+      experienceYears: 2,
+      resumeUrl: 'javascript:alert(1)'
+    });
+    expect(invalidResume.status).toBe(400);
+  });
+
+  // =========================================================================
+  // Test 7: 200-Candidate Capacity Limit Enforcement
+  // =========================================================================
+  it('Test 7: enforces the 200-candidate database cap with 422 CAPACITY_EXCEEDED', async () => {
+    // Mock countDocuments to simulate 200 candidates
+    const countSpy = vi.spyOn(Candidate, 'countDocuments').mockResolvedValue(200);
+
+    const res = await request(app).post('/api/candidates').send({
+      name: 'Over Capacity',
+      email: 'over@example.com',
+      position: 'Engineer',
+      experienceYears: 3
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('CAPACITY_EXCEEDED');
+
+    countSpy.mockRestore();
+  });
+
+  // =========================================================================
+  // Test 8: Parser Error Handling
+  // =========================================================================
+  it('Test 8: maps malformed JSON to 400 BAD_REQUEST', async () => {
+    const res = await request(app)
+      .post('/api/candidates')
+      .set('Content-Type', 'application/json')
+      .send('{ malformed json ');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('BAD_REQUEST');
+  });
 });

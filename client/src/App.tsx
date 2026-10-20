@@ -43,7 +43,11 @@ function AtsWorkspace() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Health Query
-  const { data: healthData } = useQuery({
+  const {
+    data: healthData,
+    isLoading: isHealthLoading,
+    isError: isHealthError
+  } = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
       const res = await apiClient.get('/health');
@@ -171,9 +175,31 @@ function AtsWorkspace() {
               />
             </button>
 
-            <div className="text-xs flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="hidden sm:inline">Atlas Connected</span>
+            <div
+              className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded border ${
+                healthData?.status === 'healthy'
+                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  : isHealthLoading
+                  ? 'text-amber-700 bg-amber-50 border-amber-200'
+                  : 'text-rose-700 bg-rose-50 border-rose-200'
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  healthData?.status === 'healthy'
+                    ? 'bg-emerald-500'
+                    : isHealthLoading
+                    ? 'bg-amber-500 animate-pulse'
+                    : 'bg-rose-500'
+                }`}
+              />
+              <span className="hidden sm:inline">
+                {healthData?.status === 'healthy'
+                  ? 'System Healthy'
+                  : isHealthLoading
+                  ? 'Connecting...'
+                  : 'Disconnected'}
+              </span>
             </div>
           </div>
         </div>
@@ -274,17 +300,21 @@ function AtsWorkspace() {
                 </button>
               </div>
               <CandidateTable
-                candidates={candidates.slice(0, 5)}
+                candidates={
+                  dashboardData?.recentCandidates && dashboardData.recentCandidates.length > 0
+                    ? dashboardData.recentCandidates
+                    : candidates.slice(0, 5)
+                }
                 pagination={{
                   page: 1,
                   limit: 5,
-                  total: candidates.length,
+                  total: dashboardData?.recentCandidates?.length || candidates.length,
                   totalPages: 1
                 }}
                 onPageChange={() => {}}
                 onSelectCandidate={handleSelectCandidate}
                 onRefresh={handleRefreshAll}
-                isLoading={isLoadingCandidates}
+                isLoading={isLoadingDashboard || isLoadingCandidates}
               />
             </div>
           </div>
@@ -307,6 +337,7 @@ function AtsWorkspace() {
           setSelectedCandidate(null);
         }}
         onRefresh={handleRefreshAll}
+        onCandidateUpdated={(updated) => setSelectedCandidate(updated)}
       />
     </div>
   );

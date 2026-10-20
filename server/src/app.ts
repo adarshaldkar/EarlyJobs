@@ -21,17 +21,16 @@ export const createApp = (): Express => {
   app.use(helmet());
 
   // 3. CORS Configuration
-  const configuredOrigins = env.CLIENT_ORIGIN.split(',').map((o) => o.trim());
+  // 3. CORS Configuration
+  const configuredOrigins = env.CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
   const allowedOrigins = [...configuredOrigins, 'http://localhost:5173', 'http://127.0.0.1:5173'];
   app.use(
     cors({
       origin: (origin, callback) => {
         if (
           !origin ||
-          env.CLIENT_ORIGIN === '*' ||
           allowedOrigins.includes(origin) ||
-          (origin.endsWith('.vercel.app') && env.CLIENT_ORIGIN.includes('vercel.app')) ||
-          env.NODE_ENV === 'development'
+          (env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'))
         ) {
           callback(null, true);
         } else {
