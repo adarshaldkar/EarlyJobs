@@ -8,7 +8,7 @@ test.describe('Candidate intake validation', () => {
   test('shows inline validation errors before sending an invalid candidate', async ({ page }) => {
     await page.goto('/');
 
-    await page.getByRole('button', { name: 'Add candidate', exact: true }).click();
+    await page.getByTestId('add-candidate-button').click();
     const dialog = page.getByRole('dialog', { name: 'Add candidate' });
 
     await dialog.getByLabel('Full name').fill('');
@@ -42,7 +42,7 @@ test.describe('Candidate intake validation', () => {
 
     try {
       await page.goto('/');
-      await page.getByRole('button', { name: 'Add candidate', exact: true }).click();
+      await page.getByTestId('add-candidate-button').click();
       const dialog = page.getByRole('dialog', { name: 'Add candidate' });
 
       await dialog.getByLabel('Full name').fill('Duplicate E2E Candidate');

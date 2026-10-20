@@ -165,6 +165,7 @@ export default function CandidateDirectory() {
         <button
           type="button"
           onClick={() => setDialogOpen(true)}
+          data-testid="add-candidate-button"
           className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:self-auto"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
