@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Candidate, HiringStage } from '../models/Candidate.js';
+import { Job } from '../models/Job.js';
+import { Interview } from '../models/Interview.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,7 +46,7 @@ export const SEED_CANDIDATES: SeedRecord[] = [
     position: 'Full Stack Engineer',
     experienceYears: 3,
     skills: ['React', 'Node.js', 'MongoDB', 'TypeScript'],
-    resumeUrl: 'https://github.com/aaravpatel/resume/raw/main/cv.pdf',
+    resumeUrl: '/uploads/resumes/sample_resume.pdf',
     notes: 'Submitted via EarlyJobs careers portal. Strong open-source contributions.',
     rating: 4,
     tags: ["Top Talent","Referral"],
@@ -642,6 +644,130 @@ export const SEED_CANDIDATES: SeedRecord[] = [
   }
 ];
 
+export const SEED_JOBS = [
+  {
+    title: 'Full Stack Engineer',
+    department: 'Engineering',
+    location: 'Bengaluru (Hybrid)',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 2,
+    experienceMax: 5,
+    openingsCount: 3,
+    description: 'Build mission-critical recruitment applications with React, TypeScript, Node.js, and MongoDB.',
+    requirements: ['React', 'TypeScript', 'Node.js', 'MongoDB', 'REST APIs']
+  },
+  {
+    title: 'Frontend Developer',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 2,
+    experienceMax: 4,
+    openingsCount: 2,
+    description: 'Craft ultra-polished, accessible user interfaces following Ashby/Linear executive design principles.',
+    requirements: ['React', 'TypeScript', 'Tailwind CSS', 'Vite', 'State Management']
+  },
+  {
+    title: 'Backend Developer',
+    department: 'Engineering',
+    location: 'Bengaluru',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 3,
+    experienceMax: 6,
+    openingsCount: 2,
+    description: 'Design robust asynchronous distributed services, aggregation pipelines, and high-concurrency data models.',
+    requirements: ['Node.js', 'Express', 'MongoDB Atlas', 'Redis', 'Docker']
+  },
+  {
+    title: 'DevOps Engineer',
+    department: 'Infrastructure',
+    location: 'Remote',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 3,
+    experienceMax: 7,
+    openingsCount: 1,
+    description: 'Manage automated CI/CD pipelines, container orchestration, reverse proxy configurations, and cloud observability.',
+    requirements: ['AWS', 'Kubernetes', 'Docker', 'Terraform', 'GitHub Actions']
+  },
+  {
+    title: 'UI/UX Designer & Frontend',
+    department: 'Design',
+    location: 'Bengaluru (Hybrid)',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 2,
+    experienceMax: 5,
+    openingsCount: 1,
+    description: 'Shape the design language and visual aesthetic for EarlyJobs recruiter workflows.',
+    requirements: ['Figma', 'Design Systems', 'React', 'CSS Modules', 'Prototyping']
+  },
+  {
+    title: 'Product Manager',
+    department: 'Product',
+    location: 'Bengaluru',
+    type: 'Full-time',
+    status: 'Open',
+    experienceMin: 3,
+    experienceMax: 6,
+    openingsCount: 1,
+    description: 'Define product strategy, recruiter workflows, and interview experience for EarlyJobs ATS.',
+    requirements: ['User Research', 'Product Strategy', 'Agile', 'Wireframing', 'Analytics']
+  }
+];
+
+export const SEED_INTERVIEWS = [
+  {
+    candidateName: 'Gaurav Agarwal',
+    candidateEmail: 'gaurav.agarwal@example.com',
+    position: 'Full Stack Engineer',
+    round: 'Technical Architecture & System Design',
+    interviewer: 'Sarah Jenkins (VP Engineering)',
+    scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // Tomorrow
+    durationMinutes: 60,
+    meetingLink: 'https://meet.google.com/ej-tech-loop',
+    status: 'Scheduled'
+  },
+  {
+    candidateName: 'Ishaan Mukherjee',
+    candidateEmail: 'ishaan.m@example.com',
+    position: 'Full Stack Engineer',
+    round: 'Live Coding Challenge & Deep Dive',
+    interviewer: 'Alex Chen (Staff Engineer)',
+    scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // 2 days
+    durationMinutes: 45,
+    meetingLink: 'https://meet.google.com/ej-live-code',
+    status: 'Scheduled'
+  },
+  {
+    candidateName: 'Kavita Pillai',
+    candidateEmail: 'kavita.pillai@example.com',
+    position: 'Engineering Manager',
+    round: 'Founders Leadership & Culture Fit',
+    interviewer: 'Adarsh Aldkar (Head of Talent)',
+    scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3), // 3 days
+    durationMinutes: 45,
+    meetingLink: 'https://meet.google.com/ej-culture-round',
+    status: 'Scheduled'
+  },
+  {
+    candidateName: 'Abhinav Sharma',
+    candidateEmail: 'abhinav.sharma@example.com',
+    position: 'Frontend Developer',
+    round: 'UI Component Architecture',
+    interviewer: 'Ananya Gupta (Lead Designer)',
+    scheduledAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // Yesterday
+    durationMinutes: 45,
+    meetingLink: 'https://meet.google.com/ej-ui-review',
+    status: 'Completed',
+    feedback: 'Strong grasp of component modularity and CSS architecture. Recommended for Offer.',
+    rating: 5
+  }
+];
+
 async function seedDatabase() {
   console.log('🌱 Connecting to MongoDB Atlas for idempotent seeding...');
   await mongoose.connect(MONGODB_URI!, {
@@ -651,21 +777,40 @@ async function seedDatabase() {
   console.log('✅ Connected to MongoDB Atlas.');
 
   let insertedCount = 0;
-  let updatedCount = 0;
-
   for (const record of SEED_CANDIDATES) {
     const res = await Candidate.findOneAndUpdate(
       { email: record.email },
       { $set: record },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+    if (res) insertedCount++;
+  }
 
-    if (res) {
-      insertedCount++;
+  // Seed Jobs
+  for (const job of SEED_JOBS) {
+    await Job.findOneAndUpdate(
+      { title: job.title },
+      { $set: job },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+
+  // Seed Interviews
+  const candidates = await Candidate.find();
+  const emailMap = new Map(candidates.map((c) => [c.email, c._id]));
+
+  for (const interview of SEED_INTERVIEWS) {
+    const candId = emailMap.get(interview.candidateEmail);
+    if (candId) {
+      await Interview.findOneAndUpdate(
+        { candidateEmail: interview.candidateEmail, round: interview.round },
+        { $set: { ...interview, candidateId: candId } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
     }
   }
 
-  console.log(`🎉 Seeding complete! Processed ${insertedCount} candidates across all 6 hiring stages.`);
+  console.log(`🎉 Seeding complete! Processed ${insertedCount} candidates, ${SEED_JOBS.length} jobs, and ${SEED_INTERVIEWS.length} interviews.`);
   console.log('📊 Stage distribution:');
   console.log('   - Applied: 10');
   console.log('   - Screening: 8');

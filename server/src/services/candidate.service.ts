@@ -149,6 +149,32 @@ export class CandidateService {
   }
 
   /**
+   * Attach uploaded resume to candidate profile
+   */
+  static async attachResume(
+    id: string,
+    relativeUrl: string,
+    originalName: string,
+    fileSizeBytes: number
+  ): Promise<ICandidateDocument> {
+    const candidate = await Candidate.findById(id);
+    if (!candidate) {
+      throw new ApiError(404, 'CANDIDATE_NOT_FOUND', 'Candidate not found.');
+    }
+
+    candidate.resumeUrl = relativeUrl;
+    candidate.stageHistory.push({
+      from: candidate.stage,
+      to: candidate.stage,
+      changedAt: new Date(),
+      notes: `[Resume Uploaded] ${originalName} (${(fileSizeBytes / 1024).toFixed(1)} KB)`
+    });
+
+    await candidate.save();
+    return candidate;
+  }
+
+  /**
    * Update candidate profile fields (name, position, experience, skills, resumeUrl, notes, rating, tags).
    * Email and stage are strictly immutable via this endpoint.
    */

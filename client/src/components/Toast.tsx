@@ -10,8 +10,17 @@ export interface ToastMessage {
   message: string;
 }
 
+export type ToastOptions = {
+  message: string;
+  type?: ToastType;
+  title?: string;
+};
+
 interface ToastContextValue {
-  showToast: (message: string, type?: ToastType, title?: string) => void;
+  showToast: {
+    (message: string, type?: ToastType, title?: string): void;
+    (options: ToastOptions): void;
+  };
   removeToast: (id: string) => void;
 }
 
@@ -25,7 +34,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = useCallback(
-    (message: string, type: ToastType = 'info', title?: string) => {
+    (arg: string | ToastOptions, optType: ToastType = 'info', optTitle?: string) => {
+      let message: string;
+      let type: ToastType = optType;
+      let title: string | undefined = optTitle;
+
+      if (typeof arg === 'object' && arg !== null) {
+        message = arg.message;
+        type = arg.type || 'info';
+        title = arg.title;
+      } else {
+        message = arg;
+      }
+
       const id = `${Date.now()}-${Math.random()}`;
       setToasts((prev) => [...prev, { id, type, title, message }]);
       setTimeout(() => {

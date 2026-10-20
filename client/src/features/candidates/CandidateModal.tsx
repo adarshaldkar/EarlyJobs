@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, AlertCircle, Loader2 } from 'lucide-react';
+import { X, AlertCircle, Loader2, UploadCloud, FileText } from 'lucide-react';
 import { HIRING_STAGES, HiringStage } from '../../types';
-import { createCandidate, getApiErrorMessage } from '../../lib/api';
+import { createCandidate, uploadCandidateResume, getApiErrorMessage } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 
 // Form validation schema matching backend constraints
@@ -49,6 +49,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
   const { showToast } = useToast();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedResumeFile, setSelectedResumeFile] = useState<File | null>(null);
 
   const {
     register,
@@ -75,6 +76,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
 
   const handleClose = () => {
     setServerError(null);
+    setSelectedResumeFile(null);
     reset();
     onClose();
   };
@@ -111,7 +113,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
             .filter(Boolean)
         : [];
 
-      await createCandidate({
+      const newCandidate = await createCandidate({
         name: data.name,
         email: data.email,
         phone: data.phone || undefined,
@@ -124,6 +126,14 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
         tags: parsedTags,
         stage: data.stage as HiringStage
       });
+
+      if (selectedResumeFile && newCandidate._id) {
+        try {
+          await uploadCandidateResume(newCandidate._id, selectedResumeFile);
+        } catch {
+          // Non-blocking resume upload error
+        }
+      }
 
       showToast(`Candidate ${data.name} added successfully.`, 'success');
       handleClose();
@@ -301,7 +311,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
                 id="field-resume-url"
                 type="url"
                 {...register('resumeUrl')}
-                placeholder="https://drive.google.com/..."
+                placeholder="https://drive.google.com/... or upload below"
                 data-testid="input-resume-url"
                 className="w-full px-3 py-2 text-xs bg-canvas border border-subtle rounded text-ink-primary placeholder:text-ink-tertiary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
               />
@@ -310,6 +320,28 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({ isOpen, onClose,
                   {errors.resumeUrl.message}
                 </p>
               )}
+
+              {/* Direct File Attachment Option */}
+              <div className="mt-2 flex items-center gap-2">
+                <label className="cursor-pointer px-2.5 py-1 text-[11px] font-medium text-ink-secondary bg-surface hover:bg-stone-100 border border-subtle rounded inline-flex items-center gap-1.5 transition-colors">
+                  <UploadCloud className="w-3.5 h-3.5 text-accent" />
+                  <span>{selectedResumeFile ? 'Change PDF File' : 'Attach PDF File'}</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setSelectedResumeFile(e.target.files[0]);
+                    }}
+                  />
+                </label>
+                {selectedResumeFile && (
+                  <span className="text-[11px] text-ink-primary flex items-center gap-1 truncate max-w-[200px]">
+                    <FileText className="w-3 h-3 text-emerald-600 shrink-0" />
+                    {selectedResumeFile.name}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Rating */}

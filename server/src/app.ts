@@ -3,13 +3,20 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
 import candidateRoutes from './routes/candidate.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import metaRoutes from './routes/meta.routes.js';
+import jobRoutes from './routes/job.routes.js';
+import interviewRoutes from './routes/interview.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const createApp = (): Express => {
   const app = express();
@@ -72,9 +79,12 @@ export const createApp = (): Express => {
   });
   app.use('/api', apiLimiter);
 
-  // 7. Routes
+  // 7. Routes & Static Files
+  app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
   app.use('/api', healthRoutes);
   app.use('/api/candidates', candidateRoutes);
+  app.use('/api/jobs', jobRoutes);
+  app.use('/api/interviews', interviewRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/meta', metaRoutes);
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError.js';
+export { ApiError } from '../utils/ApiError.js';
 import { ZodError } from 'zod';
 import { env } from '../config/env.js';
 

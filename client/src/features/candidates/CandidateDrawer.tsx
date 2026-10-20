@@ -16,15 +16,21 @@ import {
   Send,
   MessageSquare,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Eye,
+  Download,
+  UploadCloud,
+  RefreshCw
 } from 'lucide-react';
 import { Candidate, HIRING_STAGES, HiringStage } from '../../types';
 import { StageBadge } from '../../components/StageBadge';
+import { ResumePreviewModal } from '../../components/ResumePreviewModal';
 import {
   updateCandidateStage,
   updateCandidate,
   addCandidateNote,
   deleteCandidate,
+  uploadCandidateResume,
   getApiErrorMessage
 } from '../../lib/api';
 import { useToast } from '../../components/Toast';
@@ -94,6 +100,11 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
   const [newTagInput, setNewTagInput] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
 
+  // Resume document state
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     setCandidate(initialCandidate);
   }, [initialCandidate]);
@@ -132,6 +143,30 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       onRefresh();
     } finally {
       setIsUpdatingStage(false);
+    }
+  };
+
+  const handleResumeFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !candidate) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast({ type: 'error', message: 'File too large. Maximum size is 5MB.' });
+      return;
+    }
+
+    try {
+      setIsUploadingResume(true);
+      const updated = await uploadCandidateResume(candidate._id, file);
+      setCandidate(updated);
+      if (onCandidateUpdated) onCandidateUpdated(updated);
+      onRefresh();
+      showToast({ type: 'success', message: 'Resume uploaded successfully' });
+    } catch (err) {
+      showToast({ type: 'error', message: getApiErrorMessage(err) });
+    } finally {
+      setIsUploadingResume(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -495,20 +530,107 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   <Calendar className="w-3.5 h-3.5 text-ink-tertiary" />
                   <span>Applied on {formatTimestamp(candidate.createdAt)}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Resume Dossier & In-App Viewer Workflow */}
+            <div className="p-3.5 rounded border border-subtle bg-surface space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-ink-primary text-xs uppercase tracking-wider text-ink-tertiary flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  Resume & CV Document
+                </span>
                 {candidate.resumeUrl && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <ExternalLink className="w-3.5 h-3.5 text-accent" />
-                    <a
-                      href={candidate.resumeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-accent hover:underline font-medium"
-                    >
-                      View External Resume
-                    </a>
-                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                    Attached
+                  </span>
                 )}
               </div>
+
+              {candidate.resumeUrl ? (
+                <div className="p-3 bg-stone-50 border border-subtle rounded space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-ink-primary truncate">
+                        {candidate.resumeUrl.split('/').pop()?.split('?')[0] || `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`}
+                      </p>
+                      <p className="text-[11px] text-ink-tertiary">PDF Document · Uploaded resume</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1 border-t border-stone-200/60">
+                    <button
+                      onClick={() => setIsPreviewOpen(true)}
+                      data-testid="preview-resume-btn"
+                      className="flex-1 py-1 px-2.5 text-xs font-medium text-ink-primary bg-surface hover:bg-stone-100 border border-subtle rounded flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-accent" />
+                      <span>Preview</span>
+                    </button>
+
+                    <a
+                      href={
+                        candidate.resumeUrl.startsWith('/uploads/')
+                          ? `${import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api', '') : ''}${candidate.resumeUrl}`
+                          : candidate.resumeUrl
+                      }
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-1 px-2.5 text-xs font-medium text-ink-secondary hover:text-ink-primary bg-surface hover:bg-stone-100 border border-subtle rounded flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download</span>
+                    </a>
+
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingResume}
+                      data-testid="replace-resume-btn"
+                      className="py-1 px-2.5 text-xs font-medium text-ink-secondary hover:text-ink-primary bg-surface hover:bg-stone-100 border border-subtle rounded flex items-center justify-center gap-1.5 transition-colors shadow-2xs disabled:opacity-50"
+                    >
+                      {isUploadingResume ? (
+                        <RotateCcw className="w-3.5 h-3.5 animate-spin text-accent" />
+                      ) : (
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      )}
+                      <span>Replace</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 border border-dashed border-stone-300 rounded bg-stone-50/50 text-center space-y-2">
+                  <p className="text-xs text-ink-tertiary">
+                    No resume document uploaded for this candidate yet.
+                  </p>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingResume}
+                    data-testid="upload-resume-btn"
+                    className="py-1.5 px-3 text-xs font-medium text-white bg-accent hover:bg-accent/90 rounded inline-flex items-center gap-1.5 shadow-2xs transition-colors disabled:opacity-50"
+                  >
+                    {isUploadingResume ? (
+                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <UploadCloud className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isUploadingResume ? 'Uploading...' : 'Upload PDF Resume'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Hidden File Input for Resume */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleResumeFileSelect}
+                accept=".pdf,.doc,.docx,application/pdf"
+                className="hidden"
+                data-testid="resume-file-input"
+              />
             </div>
 
             {/* Skills */}
@@ -639,6 +761,15 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App Resume Preview Modal */}
+      {candidate && (
+        <ResumePreviewModal
+          candidate={candidate}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 };

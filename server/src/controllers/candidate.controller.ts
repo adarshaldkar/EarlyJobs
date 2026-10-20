@@ -7,6 +7,7 @@ import {
   queryCandidatesSchema,
   addNoteSchema
 } from '../schemas/candidate.schema.js';
+import { ApiError } from '../middleware/error-handler.js';
 
 export class CandidateController {
   static async create(
@@ -140,6 +141,38 @@ export class CandidateController {
         success: true,
         data: {
           message: 'Candidate deleted successfully'
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async uploadResume(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      if (!req.file) {
+        throw new ApiError(400, 'NO_FILE_UPLOADED', 'Please select a resume file to upload');
+      }
+
+      const relativeUrl = `/uploads/resumes/${req.file.filename}`;
+      const updated = await CandidateService.attachResume(
+        req.params.id,
+        relativeUrl,
+        req.file.originalname,
+        req.file.size
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          candidate: updated,
+          resumeUrl: relativeUrl,
+          fileName: req.file.originalname,
+          size: req.file.size
         }
       });
     } catch (err) {

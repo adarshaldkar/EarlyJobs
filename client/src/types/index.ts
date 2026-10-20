@@ -77,3 +77,39 @@ export interface ApiResponse<T> {
     details?: any;
   };
 }
+
+export interface Job {
+  _id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  status: 'Open' | 'Closed' | 'Draft' | 'On Hold';
+  experienceMin?: number;
+  experienceMax?: number;
+  openingsCount: number;
+  applicantCount?: number;
+  description: string;
+  requirements: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Interview {
+  _id: string;
+  candidateId?: string;
+  candidateName: string;
+  candidateEmail: string;
+  position: string;
+  round: string;
+  interviewer: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetingLink?: string;
+  status: 'Scheduled' | 'Completed' | 'Cancelled' | 'Rescheduled';
+  feedback?: string;
+  rating?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+

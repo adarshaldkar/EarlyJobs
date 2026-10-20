@@ -31,11 +31,25 @@ export const connectDatabase = async (): Promise<void> => {
       console.log('\x1b[32m%s\x1b[0m', '✅ [database] Local in-memory MongoDB connected successfully');
 
       const { Candidate } = await import('../models/Candidate.js');
+      const { Job } = await import('../models/Job.js');
+      const { Interview } = await import('../models/Interview.js');
+
       const count = await Candidate.countDocuments();
       if (count === 0) {
-        const { SEED_CANDIDATES } = await import('../scripts/seed.js');
-        await Candidate.insertMany(SEED_CANDIDATES);
+        const { SEED_CANDIDATES, SEED_JOBS, SEED_INTERVIEWS } = await import('../scripts/seed.js');
+        const insertedCandidates = await Candidate.insertMany(SEED_CANDIDATES);
         console.log('\x1b[32m%s\x1b[0m', `🌱 [database] Seeded ${SEED_CANDIDATES.length} realistic candidates into local database`);
+
+        await Job.insertMany(SEED_JOBS);
+        console.log('\x1b[32m%s\x1b[0m', `🌱 [database] Seeded ${SEED_JOBS.length} job openings into local database`);
+
+        const emailMap = new Map(insertedCandidates.map((c: any) => [c.email, c._id]));
+        const interviewsWithCandidateId = SEED_INTERVIEWS.map((interview: any) => ({
+          ...interview,
+          candidateId: emailMap.get(interview.candidateEmail) || undefined
+        }));
+        await Interview.insertMany(interviewsWithCandidateId);
+        console.log('\x1b[32m%s\x1b[0m', `🌱 [database] Seeded ${SEED_INTERVIEWS.length} scheduled interviews into local database`);
       }
       return;
     }

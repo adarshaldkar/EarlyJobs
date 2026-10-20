@@ -5,6 +5,8 @@ import {
   CandidateListResponse,
   DashboardSummary,
   HiringStage,
+  Interview,
+  Job,
   StageMeta
 } from '../types';
 
@@ -92,6 +94,62 @@ export async function updateCandidateStage(
 
 export async function deleteCandidate(id: string): Promise<void> {
   await apiClient.delete<ApiResponse<{ deleted: boolean }>>(`/candidates/${id}`);
+}
+
+export async function uploadCandidateResume(id: string, file: File): Promise<Candidate> {
+  const formData = new FormData();
+  formData.append('resume', file);
+  const response = await apiClient.post<ApiResponse<Candidate>>(`/candidates/${id}/resume`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data.data;
+}
+
+// Jobs API
+export async function fetchJobs(params?: { status?: string; search?: string }): Promise<Job[]> {
+  const response = await apiClient.get<ApiResponse<Job[]>>('/jobs', { params });
+  return response.data.data;
+}
+
+export async function fetchJob(id: string): Promise<Job> {
+  const response = await apiClient.get<ApiResponse<Job>>(`/jobs/${id}`);
+  return response.data.data;
+}
+
+export async function createJob(data: Partial<Job>): Promise<Job> {
+  const response = await apiClient.post<ApiResponse<Job>>('/jobs', data);
+  return response.data.data;
+}
+
+export async function updateJob(id: string, data: Partial<Job>): Promise<Job> {
+  const response = await apiClient.patch<ApiResponse<Job>>(`/jobs/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteJob(id: string): Promise<void> {
+  await apiClient.delete<ApiResponse<{ deleted: boolean }>>(`/jobs/${id}`);
+}
+
+// Interviews API
+export async function fetchInterviews(params?: { status?: string; candidateId?: string }): Promise<Interview[]> {
+  const response = await apiClient.get<ApiResponse<Interview[]>>('/interviews', { params });
+  return response.data.data;
+}
+
+export async function createInterview(data: Partial<Interview>): Promise<Interview> {
+  const response = await apiClient.post<ApiResponse<Interview>>('/interviews', data);
+  return response.data.data;
+}
+
+export async function updateInterview(id: string, data: Partial<Interview>): Promise<Interview> {
+  const response = await apiClient.patch<ApiResponse<Interview>>(`/interviews/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteInterview(id: string): Promise<void> {
+  await apiClient.delete<ApiResponse<{ deleted: boolean }>>(`/interviews/${id}`);
 }
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {

@@ -7,11 +7,14 @@ const router = Router();
 router.post('/', CandidateController.create);
 router.get('/', CandidateController.list);
 
+import { resumeUpload } from '../config/upload.js';
+
 // ID-parameterized routes protected by validateObjectId
 router.get('/:id', validateObjectId, CandidateController.getById);
 router.patch('/:id', validateObjectId, CandidateController.update);
 router.patch('/:id/stage', validateObjectId, CandidateController.updateStage);
 router.post('/:id/notes', validateObjectId, CandidateController.addNote);
+router.post('/:id/resume', validateObjectId, resumeUpload.single('resume'), CandidateController.uploadResume);
 router.delete('/:id', validateObjectId, CandidateController.delete);
 
 export default router;
