@@ -23,6 +23,22 @@ export const connectDatabase = async (): Promise<void> => {
       serverSelectionTimeoutMS: 5000 // Fast-fail in 5s if Atlas is blocked or unreachable
     });
   } catch (error: any) {
+    if (env.NODE_ENV === 'development') {
+      console.warn('\x1b[33m%s\x1b[0m', '⚠️  [database] Atlas unreachable (check IP whitelist). Launching local in-memory MongoDB for dev...');
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      await mongoose.connect(mongod.getUri());
+      console.log('\x1b[32m%s\x1b[0m', '✅ [database] Local in-memory MongoDB connected successfully');
+
+      const { Candidate } = await import('../models/Candidate.js');
+      const count = await Candidate.countDocuments();
+      if (count === 0) {
+        const { SEED_CANDIDATES } = await import('../scripts/seed.js');
+        await Candidate.insertMany(SEED_CANDIDATES);
+        console.log('\x1b[32m%s\x1b[0m', `🌱 [database] Seeded ${SEED_CANDIDATES.length} realistic candidates into local database`);
+      }
+      return;
+    }
     console.error('\x1b[31m%s\x1b[0m', `❌ [database] Initial connection failed: ${error.message}`);
     throw error;
   }

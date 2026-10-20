@@ -33,7 +33,7 @@ interface SeedRecord {
   }[];
 }
 
-const SEED_CANDIDATES: SeedRecord[] = [
+export const SEED_CANDIDATES: SeedRecord[] = [
   // 1. Applied (10 candidates)
   {
     name: 'Aarav Patel',
@@ -573,7 +573,7 @@ const SEED_CANDIDATES: SeedRecord[] = [
 async function seedDatabase() {
   console.log('🌱 Connecting to MongoDB Atlas for idempotent seeding...');
   await mongoose.connect(MONGODB_URI!, {
-    serverSelectionTimeoutMS: 5000
+    serverSelectionTimeoutMS: 15000
   });
 
   console.log('✅ Connected to MongoDB Atlas.');
@@ -607,7 +607,9 @@ async function seedDatabase() {
   console.log('🔌 Disconnected cleanly from database.');
 }
 
-seedDatabase().catch((err) => {
-  console.error('❌ Seeding failed:', err);
-  process.exit(1);
-});
+if (process.argv[1] && (process.argv[1].endsWith('seed.ts') || process.argv[1].endsWith('seed.js'))) {
+  seedDatabase().catch((err) => {
+    console.error('❌ Seeding failed:', err);
+    process.exit(1);
+  });
+}
