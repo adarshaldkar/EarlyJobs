@@ -3,11 +3,15 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 
+import { Candidate } from './models/Candidate.js';
+
 const startServer = async (): Promise<void> => {
   try {
     // 1. Connect to Database first
     if (env.NODE_ENV !== 'test') {
       await connectDatabase();
+      await Candidate.init();
+      console.log('   Indexes:      Candidate indexes initialized');
     }
 
     // 2. Instantiate Express App

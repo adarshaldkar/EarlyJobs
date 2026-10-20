@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
+import candidateRoutes from './routes/candidate.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
+import metaRoutes from './routes/meta.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 
@@ -62,6 +65,9 @@ export const createApp = (): Express => {
 
   // 7. Routes
   app.use('/api', healthRoutes);
+  app.use('/api/candidates', candidateRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/meta', metaRoutes);
 
   // Root welcome / health ping
   app.get('/', (_req, res) => {

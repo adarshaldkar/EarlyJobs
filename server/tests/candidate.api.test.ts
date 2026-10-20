@@ -1,0 +1,249 @@
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import request from 'supertest';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { createApp } from '../src/app.js';
+import { Candidate } from '../src/models/Candidate.js';
+
+describe('Candidate API & Business Logic Integration Tests', () => {
+  let mongoServer: MongoMemoryServer;
+  const app = createApp();
+
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri());
+    // Ensure unique indexes are built before running test assertions
+    await Candidate.init();
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
+  });
+
+  beforeEach(async () => {
+    await Candidate.deleteMany({});
+  });
+
+  // =========================================================================
+  // Test 1: Duplicate Email Rejection
+  // =========================================================================
+  it('Test 1: rejects duplicate candidate email with 409 DUPLICATE_EMAIL', async () => {
+    const payload = {
+      name: 'Aarav Patel',
+      email: 'aarav.patel@example.com',
+      position: 'Senior Frontend Engineer',
+      experienceYears: 4,
+      skills: ['React', 'TypeScript', 'Tailwind'],
+      resumeUrl: 'https://example.com/aarav-resume.pdf'
+    };
+
+    // First creation succeeds
+    const res1 = await request(app).post('/api/candidates').send(payload);
+    expect(res1.status).toBe(201);
+    expect(res1.body.success).toBe(true);
+    expect(res1.body.data.email).toBe('aarav.patel@example.com');
+    expect(res1.body.data.stage).toBe('Applied');
+    expect(res1.body.data.stageHistory).toHaveLength(1);
+    expect(res1.body.data.stageHistory[0].from).toBeNull();
+    expect(res1.body.data.stageHistory[0].to).toBe('Applied');
+
+    // Duplicate email with spaces/casing
+    const duplicatePayload = {
+      ...payload,
+      name: 'Aarav Duplicate',
+      email: '  AARAV.PATEL@example.com  '
+    };
+
+    const res2 = await request(app).post('/api/candidates').send(duplicatePayload);
+    expect(res2.status).toBe(409);
+    expect(res2.body.success).toBe(false);
+    expect(res2.body.error.code).toBe('DUPLICATE_EMAIL');
+    expect(res2.body.error.message).toContain('already exists');
+  });
+
+  // =========================================================================
+  // Test 2: Concurrency Conflict Detection
+  // =========================================================================
+  it('Test 2: detects concurrent stage updates and yields exactly one 200 and one 409 STALE_STATE', async () => {
+    const created = await Candidate.create({
+      name: 'Priya Sharma',
+      email: 'priya@example.com',
+      position: 'Backend Developer',
+      experienceYears: 5,
+      stage: 'Applied',
+      stageHistory: [{ from: null, to: 'Applied', changedAt: new Date() }]
+    });
+
+    const candidateId = created._id.toString();
+
+    // Two parallel requests both believing currentStage is 'Applied'
+    const [resA, resB] = await Promise.all([
+      request(app)
+        .patch(`/api/candidates/${candidateId}/stage`)
+        .send({ currentStage: 'Applied', newStage: 'Screening', notes: 'First reviewer' }),
+      request(app)
+        .patch(`/api/candidates/${candidateId}/stage`)
+        .send({ currentStage: 'Applied', newStage: 'Interview', notes: 'Second reviewer' })
+    ]);
+
+    const statuses = [resA.status, resB.status].sort();
+    expect(statuses).toEqual([200, 409]);
+
+    const conflictRes = resA.status === 409 ? resA : resB;
+    expect(conflictRes.body.success).toBe(false);
+    expect(conflictRes.body.error.code).toBe('STALE_STATE');
+
+    // Check DB state has only the winning transition
+    const fresh = await Candidate.findById(candidateId);
+    expect(fresh).not.toBeNull();
+    expect(['Screening', 'Interview']).toContain(fresh!.stage);
+    expect(fresh!.stageHistory).toHaveLength(2);
+  });
+
+  // =========================================================================
+  // Test 3: Same-Stage Verification & Stale No-Op
+  // =========================================================================
+  it('Test 3: returns 200 no-op if DB matches currentStage; returns 409 STALE_STATE if DB already changed', async () => {
+    const candidate = await Candidate.create({
+      name: 'Rohan Verma',
+      email: 'rohan@example.com',
+      position: 'DevOps Engineer',
+      experienceYears: 6,
+      stage: 'Screening',
+      stageHistory: [
+        { from: null, to: 'Applied', changedAt: new Date() },
+        { from: 'Applied', to: 'Screening', changedAt: new Date() }
+      ]
+    });
+
+    const candidateId = candidate._id.toString();
+
+    // 1. Genuine no-op: client submits Screening -> Screening, and DB is Screening
+    const noOpRes = await request(app)
+      .patch(`/api/candidates/${candidateId}/stage`)
+      .send({ currentStage: 'Screening', newStage: 'Screening' });
+
+    expect(noOpRes.status).toBe(200);
+    expect(noOpRes.body.success).toBe(true);
+    expect(noOpRes.body.data.stage).toBe('Screening');
+    expect(noOpRes.body.data.stageHistory).toHaveLength(2); // No history appended
+
+    // 2. Persisted state changed out-of-band to 'Interview'
+    await Candidate.findByIdAndUpdate(candidateId, { $set: { stage: 'Interview' } });
+
+    // Client still submits Screening -> Screening (client view was stale)
+    const staleRes = await request(app)
+      .patch(`/api/candidates/${candidateId}/stage`)
+      .send({ currentStage: 'Screening', newStage: 'Screening' });
+
+    expect(staleRes.status).toBe(409);
+    expect(staleRes.body.success).toBe(false);
+    expect(staleRes.body.error.code).toBe('STALE_STATE');
+  });
+
+  // =========================================================================
+  // Test 4: ObjectId Validation Boundary Across Endpoints
+  // =========================================================================
+  it('Test 4: distinguishes 400 INVALID_ID from 404 CANDIDATE_NOT_FOUND across candidate endpoints', async () => {
+    const invalidId = 'not-a-valid-24-hex-id';
+    const nonExistentId = new mongoose.Types.ObjectId().toString();
+
+    // 1. GET /:id
+    const getInvalid = await request(app).get(`/api/candidates/${invalidId}`);
+    expect(getInvalid.status).toBe(400);
+    expect(getInvalid.body.error.code).toBe('INVALID_ID');
+
+    const getNotFound = await request(app).get(`/api/candidates/${nonExistentId}`);
+    expect(getNotFound.status).toBe(404);
+    expect(getNotFound.body.error.code).toBe('CANDIDATE_NOT_FOUND');
+
+    // 2. PATCH /:id
+    const patchInvalid = await request(app)
+      .patch(`/api/candidates/${invalidId}`)
+      .send({ position: 'Lead Architect' });
+    expect(patchInvalid.status).toBe(400);
+    expect(patchInvalid.body.error.code).toBe('INVALID_ID');
+
+    const patchNotFound = await request(app)
+      .patch(`/api/candidates/${nonExistentId}`)
+      .send({ position: 'Lead Architect' });
+    expect(patchNotFound.status).toBe(404);
+    expect(patchNotFound.body.error.code).toBe('CANDIDATE_NOT_FOUND');
+
+    // 3. PATCH /:id/stage
+    const stageInvalid = await request(app)
+      .patch(`/api/candidates/${invalidId}/stage`)
+      .send({ currentStage: 'Applied', newStage: 'Screening' });
+    expect(stageInvalid.status).toBe(400);
+    expect(stageInvalid.body.error.code).toBe('INVALID_ID');
+
+    const stageNotFound = await request(app)
+      .patch(`/api/candidates/${nonExistentId}/stage`)
+      .send({ currentStage: 'Applied', newStage: 'Screening' });
+    expect(stageNotFound.status).toBe(404);
+    expect(stageNotFound.body.error.code).toBe('CANDIDATE_NOT_FOUND');
+
+    // 4. DELETE /:id
+    const deleteInvalid = await request(app).delete(`/api/candidates/${invalidId}`);
+    expect(deleteInvalid.status).toBe(400);
+    expect(deleteInvalid.body.error.code).toBe('INVALID_ID');
+
+    const deleteNotFound = await request(app).delete(`/api/candidates/${nonExistentId}`);
+    expect(deleteNotFound.status).toBe(404);
+    expect(deleteNotFound.body.error.code).toBe('CANDIDATE_NOT_FOUND');
+  });
+
+  // =========================================================================
+  // Test 5: Dashboard Aggregation Invariant
+  // =========================================================================
+  it('Test 5: computes single-query facet aggregation, guarantees zero-filled stages, and satisfies mathematical invariants', async () => {
+    // Seed varied candidate distributions (leaving 'Offer' at 0)
+    await Candidate.create([
+      { name: 'C1', email: 'c1@test.com', position: 'Eng', experienceYears: 2, stage: 'Applied' },
+      { name: 'C2', email: 'c2@test.com', position: 'Eng', experienceYears: 3, stage: 'Applied' },
+      { name: 'C3', email: 'c3@test.com', position: 'Eng', experienceYears: 1, stage: 'Screening' },
+      { name: 'C4', email: 'c4@test.com', position: 'Eng', experienceYears: 4, stage: 'Interview' },
+      { name: 'C5', email: 'c5@test.com', position: 'Eng', experienceYears: 5, stage: 'Interview' },
+      { name: 'C6', email: 'c6@test.com', position: 'Eng', experienceYears: 2, stage: 'Hired' },
+      { name: 'C7', email: 'c7@test.com', position: 'Eng', experienceYears: 6, stage: 'Rejected' }
+    ]);
+
+    const res = await request(app).get('/api/dashboard/summary');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const { total, activePipeline, interviewing, hired, rejected, stageCounts, recentCandidates } =
+      res.body.data;
+
+    // Invariant 1: Total count matches
+    expect(total).toBe(7);
+
+    // Invariant 2: All 6 stages exist with zero-filling
+    expect(stageCounts.Applied).toBe(2);
+    expect(stageCounts.Screening).toBe(1);
+    expect(stageCounts.Interview).toBe(2);
+    expect(stageCounts.Offer).toBe(0); // Zero-filled!
+    expect(stageCounts.Hired).toBe(1);
+    expect(stageCounts.Rejected).toBe(1);
+
+    // Invariant 3: Total === sum of stage counts
+    const sumStages = Object.values(stageCounts).reduce((acc: number, val: any) => acc + val, 0);
+    expect(total).toBe(sumStages);
+
+    // Invariant 4: Active pipeline calculation
+    expect(activePipeline).toBe(
+      stageCounts.Applied + stageCounts.Screening + stageCounts.Interview + stageCounts.Offer
+    );
+    expect(activePipeline).toBe(5);
+    expect(activePipeline).toBe(total - (hired + rejected));
+
+    // Invariant 5: Specific metrics
+    expect(interviewing).toBe(2);
+    expect(hired).toBe(1);
+    expect(rejected).toBe(1);
+    expect(recentCandidates).toHaveLength(5); // capped at recent 5
+  });
+});

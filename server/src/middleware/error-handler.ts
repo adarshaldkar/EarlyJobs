@@ -43,10 +43,11 @@ export const errorHandler = (
   // 3. MongoDB Duplicate Key Error (E11000)
   if (err.code === 11000) {
     const field = Object.keys(err.keyPattern || {})[0] || 'field';
+    const code = field === 'email' ? 'DUPLICATE_EMAIL' : 'DUPLICATE_RESOURCE';
     res.status(409).json({
       success: false,
       error: {
-        code: 'DUPLICATE_RESOURCE',
+        code,
         message: `A candidate with this ${field} already exists.`
       }
     });
