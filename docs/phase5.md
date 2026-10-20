@@ -5,7 +5,7 @@
 > **Target Timebox:** 45 Minutes  
 > **Primary Stack:** Render (Backend API), Vercel (Frontend SPA), MongoDB Atlas (Database), Playwright (Remote Acceptance)  
 > **Working Directories:** `server/`, `client/`, `docs/`, `e2e/`  
-> **Status:** Deployment Ready & Verified 🚀  
+> **Status:** Deployment Infrastructure & Configuration Prepared (Awaiting Live Cloud Provisioning & Verification)  
 
 ---
 
@@ -142,6 +142,10 @@ Execute these sequential smoke checks immediately after deployment:
 1. **Render Free-Tier Spin-Down (Cold Start):**
    - **Behavior:** Inactive services spin down after 15 minutes. The initial HTTP request may take 40–50 seconds to wake the service.
    - **Mitigation:** The frontend Axios client includes polite loading states, and the health check probe (`/api/health`) can be pinged before demoing.
-2. **Vercel Preview URL CORS:**
-   - **Behavior:** Vercel generates unique preview deployment URLs (`https://<project>-git-<branch>.vercel.app`).
-   - **Mitigation:** The backend CORS origin validator in `server/src/app.ts` dynamically permits any origin ending in `.vercel.app` when `CLIENT_ORIGIN` contains `vercel.app`.
+2. **Production CORS Allowlist:**
+   - **Behavior:** In production (`NODE_ENV=production`), localhost and local loopback origins are strictly excluded. The server only accepts requests from explicitly declared origins.
+   - **Configuration:** Set `CLIENT_ORIGIN` in your Render environment settings to your exact production Vercel frontend URL (e.g., `https://earlyjobs-ats.vercel.app`). For custom domains or preview deployments, provide comma-separated URLs.
+3. **200-Candidate Sandbox Capacity Guard:**
+   - **Behavior:** The API enforces an application-level guard via `Candidate.countDocuments()` returning `422 CAPACITY_EXCEEDED` once 200 candidates exist.
+   - **Concurrency Scope:** Designed for demo sandbox storage protection; concurrent high-throughput requests may race past the check before insertion. For mission-critical production deployments requiring strict atomic limits, an atomic counter document or replica-set transaction should be configured.
+

@@ -21,6 +21,7 @@ export class CandidateService {
   static async createCandidate(
     data: CreateCandidateInput
   ): Promise<ICandidateDocument> {
+    // shortcut: application-level soft capacity guard. Under high concurrency, simultaneous requests may race past countDocuments(). For strict atomic enforcement in production, upgrade to an atomic counter document or replica-set transaction.
     const totalCount = await Candidate.countDocuments();
     if (totalCount >= 200) {
       throw new ApiError(
