@@ -21,11 +21,18 @@ export const createApp = (): Express => {
   app.use(helmet());
 
   // 3. CORS Configuration
-  const allowedOrigins = [env.CLIENT_ORIGIN, 'http://localhost:5173', 'http://127.0.0.1:5173'];
+  const configuredOrigins = env.CLIENT_ORIGIN.split(',').map((o) => o.trim());
+  const allowedOrigins = [...configuredOrigins, 'http://localhost:5173', 'http://127.0.0.1:5173'];
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV === 'development') {
+        if (
+          !origin ||
+          env.CLIENT_ORIGIN === '*' ||
+          allowedOrigins.includes(origin) ||
+          (origin.endsWith('.vercel.app') && env.CLIENT_ORIGIN.includes('vercel.app')) ||
+          env.NODE_ENV === 'development'
+        ) {
           callback(null, true);
         } else {
           callback(new Error(`Origin ${origin} not allowed by CORS`));
