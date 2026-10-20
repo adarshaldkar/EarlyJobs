@@ -25,7 +25,8 @@ export const connectDatabase = async (): Promise<void> => {
   } catch (error: any) {
     if (env.NODE_ENV === 'development') {
       console.warn('\x1b[33m%s\x1b[0m', '⚠️  [database] Atlas unreachable (check IP whitelist). Launching local in-memory MongoDB for dev...');
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const memPkg = 'mongodb-memory-server';
+      const { MongoMemoryServer } = await (import(memPkg) as Promise<any>);
       const mongod = await MongoMemoryServer.create();
       await mongoose.connect(mongod.getUri());
       console.log('\x1b[32m%s\x1b[0m', '✅ [database] Local in-memory MongoDB connected successfully');
