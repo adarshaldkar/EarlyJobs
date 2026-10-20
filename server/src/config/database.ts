@@ -20,7 +20,7 @@ export const connectDatabase = async (): Promise<void> => {
 
   try {
     await mongoose.connect(env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000 // Fast-fail in 5s if Atlas is blocked or unreachable
+      serverSelectionTimeoutMS: 10000 // 10s timeout for cloud deployments (Render -> Atlas)
     });
   } catch (error: any) {
     if (env.NODE_ENV === 'development') {
