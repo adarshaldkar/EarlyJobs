@@ -1,117 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Activity, ShieldCheck, Database, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, ShieldCheck } from 'lucide-react';
+import { apiClient, ApiSuccess } from './lib/api';
+import CandidateDirectory from './features/candidates/CandidateDirectory';
 
 interface HealthData {
   status: string;
   database: string;
-  uptime?: number;
-  timestamp?: string;
 }
 
+type HealthState = 'checking' | 'connected' | 'unavailable';
+
 export default function App() {
-  const [health, setHealth] = useState<HealthData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [healthState, setHealthState] = useState<HealthState>('checking');
 
   useEffect(() => {
-    const fetchHealth = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get('/api/health');
-        if (res.data?.success) {
-          setHealth(res.data.data);
-          setError(null);
-        } else {
-          setError(res.data?.error?.message || 'Unhealthy status');
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.error?.message || err.message || 'Cannot reach API');
-      } finally {
-        setLoading(false);
-      }
-    };
+    let active = true;
 
-    fetchHealth();
+    apiClient
+      .get<ApiSuccess<HealthData>>('/health')
+      .then((response) => {
+        if (active) {
+          setHealthState(response.data.data.database === 'connected' ? 'connected' : 'unavailable');
+        }
+      })
+      .catch(() => {
+        if (active) setHealthState('unavailable');
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
     <div className="min-h-screen bg-canvas text-ink-primary">
-      {/* Top Navigation */}
-      <header className="border-b border-subtle bg-surface px-6 py-3">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-accent text-white">
-              <span className="text-xs font-bold tracking-tight">EJ</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-semibold tracking-tight text-ink-primary">EarlyJobs ATS</span>
-              <span className="text-xs text-ink-secondary">Recruiter Workspace</span>
-            </div>
-          </div>
+      <header className="border-b border-subtle bg-surface">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+          <a href="/" className="flex min-w-0 items-center gap-3 rounded-sm" aria-label="EarlyJobs ATS home">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-xs font-bold tracking-tight text-white">
+              EJ
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold tracking-tight text-ink-primary">
+                EarlyJobs ATS
+              </span>
+              <span className="hidden text-xs text-ink-secondary sm:block">
+                Recruiter workspace
+              </span>
+            </span>
+          </a>
 
-          {/* System Health Diagnostic Pill */}
-          <div className="flex items-center gap-2 text-xs">
-            {loading ? (
-              <span className="flex items-center gap-1.5 text-ink-secondary">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
-                Checking API...
-              </span>
-            ) : health?.database === 'connected' ? (
-              <span className="flex items-center gap-1.5 text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                MongoDB Connected
-              </span>
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 rounded-full border border-subtle bg-white px-3 py-1.5 text-xs font-medium"
+          >
+            {healthState === 'connected' ? (
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                <span className="text-emerald-800">API healthy</span>
+              </>
+            ) : healthState === 'checking' ? (
+              <>
+                <Activity className="h-3.5 w-3.5 animate-pulse text-amber-600" aria-hidden="true" />
+                <span className="text-ink-secondary">Checking API…</span>
+              </>
             ) : (
-              <span className="flex items-center gap-1.5 text-rose-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                {error || 'Database Offline'}
-              </span>
+              <>
+                <ShieldCheck className="h-3.5 w-3.5 text-rose-600" aria-hidden="true" />
+                <span className="text-rose-700">API unavailable</span>
+              </>
             )}
           </div>
         </div>
       </header>
 
-      {/* Main Workspace Container */}
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        {/* Human Stats Strip (No 4 big cards with fake +12% icons) */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-subtle pb-4 text-xs font-medium text-ink-secondary">
-          <span className="text-ink-primary font-semibold">Pipeline:</span>
-          <span>0 candidates</span>
-          <span>·</span>
-          <span>0 active</span>
-          <span>·</span>
-          <span>0 interviewing</span>
-          <span>·</span>
-          <span>0 hired</span>
-        </div>
-
-        {/* Phase 1 Status Banner */}
-        <div className="mt-8 rounded border border-subtle bg-surface p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-accent-light text-accent">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-ink-primary">Phase 1: Foundation Scaffolded</h2>
-              <p className="mt-1 text-xs text-ink-secondary leading-relaxed">
-                Backend Express engine with security headers, reverse proxy configuration, and database health check is active.
-                Human-crafted design tokens configured (6px radius, neutral palette, deep teal accent).
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-4 text-xs text-ink-secondary font-mono">
-                <div className="rounded border border-subtle bg-canvas px-2.5 py-1.5">
-                  <span className="text-ink-primary font-semibold">API Health: </span>
-                  {health ? health.status : 'checking...'}
-                </div>
-                <div className="rounded border border-subtle bg-canvas px-2.5 py-1.5">
-                  <span className="text-ink-primary font-semibold">Database: </span>
-                  {health ? health.database : (error || 'unconnected')}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <main className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
+        <CandidateDirectory />
+        <footer className="mt-8 border-t border-subtle pt-4 text-xs text-ink-secondary">
+          EarlyJobs Mini ATS · Recruiter demo
+        </footer>
       </main>
     </div>
   );
