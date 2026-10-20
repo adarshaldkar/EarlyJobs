@@ -93,4 +93,54 @@ test.describe('E2E Test 4: Modern ATS Pipeline, Stepper & Feedback Notes', () =>
     await page.getByTestId('close-drawer-btn').click();
     await expect(drawer).not.toBeVisible();
   });
+
+  test('supports full candidate profile editing and skill search', async ({ page }) => {
+    const ts = Date.now();
+    const candidateName = `Edit Profile Test ${ts}`;
+    const candidateEmail = `edit.profile.${ts}@example.com`;
+    const uniqueSkill = `RustGraphQL${ts}`;
+
+    // 1. Create candidate with unique skill
+    await page.getByTestId('add-candidate-btn').click();
+    await page.getByTestId('input-name').fill(candidateName);
+    await page.getByTestId('input-email').fill(candidateEmail);
+    await page.getByTestId('input-position').fill('Software Engineer');
+    await page.getByTestId('input-experience').fill('2');
+    await page.getByTestId('input-skills').fill(`React, Node.js, ${uniqueSkill}`);
+    await page.getByTestId('submit-candidate-btn').click();
+    await expect(page.getByTestId('toast-success').last()).toBeVisible();
+
+    // 2. Verify skill search works as advertised in README
+    await page.getByTestId('search-input').fill(uniqueSkill);
+    const table = page.getByTestId('candidates-table');
+    await expect(table.getByText(candidateName)).toBeVisible();
+
+    // 3. Open Candidate Drawer and edit profile
+    await table.getByText(candidateName).click();
+    const drawer = page.getByRole('dialog');
+    await expect(drawer).toBeVisible();
+
+    // Click Edit Profile button
+    await page.getByTestId('edit-profile-btn').click();
+    await expect(page.getByTestId('edit-candidate-form')).toBeVisible();
+
+    // Modify target position and location
+    await page.getByTestId('input-edit-position').fill('Staff Cloud Architect');
+    await page.getByTestId('input-edit-location').fill('Bengaluru (Onsite)');
+    await page.getByTestId('save-profile-btn').click();
+
+    // 4. Verify save toast and updated details
+    await expect(page.getByTestId('toast-success').last()).toBeVisible();
+    await expect(page.getByTestId('edit-candidate-form')).not.toBeVisible();
+    await expect(drawer.getByText('Staff Cloud Architect')).toBeVisible();
+    await expect(drawer.getByText('Location: Bengaluru (Onsite)')).toBeVisible();
+
+    // 5. Verify timeline recorded the profile update
+    const timeline = page.getByTestId('stage-history-timeline');
+    await expect(timeline.getByText('Candidate Profile Updated')).toBeVisible();
+
+    // Close drawer
+    await page.getByTestId('close-drawer-btn').click();
+    await expect(drawer).not.toBeVisible();
+  });
 });

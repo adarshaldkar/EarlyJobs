@@ -44,6 +44,16 @@ export class CandidateService {
             changedAt: new Date(),
             notes: 'Candidate registered in ATS'
           }
+        ],
+        activities: [
+          {
+            type: 'stage_changed',
+            title: 'Candidate Registered',
+            description: 'Candidate registered into ATS pipeline',
+            fromStage: null,
+            toStage: initialStage,
+            timestamp: new Date()
+          }
         ]
       });
 
@@ -82,7 +92,8 @@ export class CandidateService {
       filter.$or = [
         { name: safeRegex },
         { email: safeRegex },
-        { position: safeRegex }
+        { position: safeRegex },
+        { skills: safeRegex }
       ];
     }
 
@@ -144,6 +155,14 @@ export class CandidateService {
       notes: formattedNote
     });
 
+    candidate.activities = candidate.activities || [];
+    candidate.activities.push({
+      type: 'note_added',
+      title: category || 'Recruiter Note',
+      description: noteText,
+      timestamp: new Date()
+    });
+
     await candidate.save();
     return candidate;
   }
@@ -170,6 +189,15 @@ export class CandidateService {
       notes: `[Resume Uploaded] ${originalName} (${(fileSizeBytes / 1024).toFixed(1)} KB)`
     });
 
+    candidate.activities = candidate.activities || [];
+    candidate.activities.push({
+      type: 'resume_uploaded',
+      title: 'Resume Document Attached',
+      description: `${originalName} (${(fileSizeBytes / 1024).toFixed(1)} KB)`,
+      timestamp: new Date(),
+      metadata: { originalName, fileSizeBytes }
+    });
+
     await candidate.save();
     return candidate;
   }
@@ -186,10 +214,21 @@ export class CandidateService {
     delete (safeData as any).email;
     delete (safeData as any).stage;
     delete (safeData as any).stageHistory;
+    delete (safeData as any).activities;
 
     const updated = await Candidate.findByIdAndUpdate(
       id,
-      { $set: safeData },
+      {
+        $set: safeData,
+        $push: {
+          activities: {
+            type: 'profile_updated',
+            title: 'Candidate Profile Updated',
+            description: 'Recruiter edited profile details and qualifications',
+            timestamp: new Date()
+          }
+        }
+      },
       { new: true, runValidators: true }
     );
 
@@ -240,6 +279,14 @@ export class CandidateService {
             to: newStage,
             changedAt: new Date(),
             notes: notes || undefined
+          },
+          activities: {
+            type: 'stage_changed',
+            title: `Moved to ${newStage}`,
+            description: notes || `Candidate transitioned from ${currentStage} to ${newStage}`,
+            fromStage: currentStage,
+            toStage: newStage,
+            timestamp: new Date()
           }
         }
       },

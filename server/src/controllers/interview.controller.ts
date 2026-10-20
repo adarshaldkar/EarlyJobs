@@ -43,7 +43,7 @@ export class InterviewController {
       const validated = createInterviewSchema.parse(req.body);
       const interview = await Interview.create(validated);
 
-      // Log interview scheduling event to candidate's stage history
+      // Log interview scheduling event to candidate's stage history and activities
       const candidate = await Candidate.findById(validated.candidateId);
       if (candidate) {
         candidate.stageHistory.push({
@@ -51,6 +51,18 @@ export class InterviewController {
           to: candidate.stage,
           changedAt: new Date(),
           notes: `[Interview Scheduled] ${validated.round} with ${validated.interviewer} at ${new Date(validated.scheduledAt).toLocaleString()}`
+        });
+        candidate.activities = candidate.activities || [];
+        candidate.activities.push({
+          type: 'interview_scheduled',
+          title: `${validated.round} Scheduled`,
+          description: `With ${validated.interviewer} on ${new Date(validated.scheduledAt).toLocaleString()}`,
+          timestamp: new Date(),
+          metadata: {
+            round: validated.round,
+            interviewer: validated.interviewer,
+            scheduledAt: validated.scheduledAt
+          }
         });
         await candidate.save();
       }
@@ -75,7 +87,7 @@ export class InterviewController {
         throw new ApiError(404, 'INTERVIEW_NOT_FOUND', 'Interview schedule not found');
       }
 
-      // If feedback was supplied, append to candidate stageHistory
+      // If feedback was supplied, append to candidate stageHistory and activities
       if (validated.feedback) {
         const candidate = await Candidate.findById(interview.candidateId);
         if (candidate) {
@@ -84,6 +96,13 @@ export class InterviewController {
             to: candidate.stage,
             changedAt: new Date(),
             notes: `[${interview.round} Feedback] ${validated.feedback}${validated.rating ? ` (Rating: ${validated.rating}/5)` : ''}`
+          });
+          candidate.activities = candidate.activities || [];
+          candidate.activities.push({
+            type: 'note_added',
+            title: `${interview.round} Feedback`,
+            description: `${validated.feedback}${validated.rating ? ` (Rating: ${validated.rating}/5)` : ''}`,
+            timestamp: new Date()
           });
           if (validated.rating && (!candidate.rating || candidate.rating === 0)) {
             candidate.rating = validated.rating;

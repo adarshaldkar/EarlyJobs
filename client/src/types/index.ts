@@ -98,12 +98,30 @@ export interface ResumeParsingResult {
   fieldEvidence: FieldEvidence[];
 }
 
+export type ActivityType =
+  | 'stage_changed'
+  | 'note_added'
+  | 'interview_scheduled'
+  | 'resume_uploaded'
+  | 'profile_updated';
+
+export interface ActivityLog {
+  type: ActivityType;
+  title: string;
+  description?: string;
+  fromStage?: string | null;
+  toStage?: string | null;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
 export interface Candidate {
   _id: string;
   name: string;
   email: string;
   phone?: string;
   position: string;
+  jobId?: string;
   headline?: string;
   summary?: string;
   location?: string;
@@ -120,6 +138,7 @@ export interface Candidate {
   parsingStatus?: 'uploaded' | 'needs_review' | 'ready' | 'failed';
   stage: HiringStage;
   stageHistory: StageHistoryEntry[];
+  activities?: ActivityLog[];
   createdAt: string;
   updatedAt: string;
 }

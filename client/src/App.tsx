@@ -56,7 +56,7 @@ function AtsWorkspace() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
-  const limit = viewMode === 'board' ? 50 : 10;
+  const limit = viewMode === 'board' || activeView === 'pipeline' ? 200 : 10;
 
   // Modal & Drawer UI state
   const [isModalOpen, setIsModalOpen] = useState(false);

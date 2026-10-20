@@ -18,11 +18,29 @@ export interface IStageHistory {
   notes?: string;
 }
 
+export type ActivityType =
+  | 'stage_changed'
+  | 'note_added'
+  | 'interview_scheduled'
+  | 'resume_uploaded'
+  | 'profile_updated';
+
+export interface IActivityLog {
+  type: ActivityType;
+  title: string;
+  description?: string;
+  fromStage?: string | null;
+  toStage?: string | null;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
 export interface ICandidate {
   name: string;
   email: string;
   phone?: string;
   position: string;
+  jobId?: mongoose.Types.ObjectId;
   headline?: string;
   summary?: string;
   location?: string;
@@ -32,6 +50,7 @@ export interface ICandidate {
   notes?: string;
   stage: HiringStage;
   stageHistory: IStageHistory[];
+  activities?: IActivityLog[];
   rating?: number;
   tags?: string[];
   links?: any[];
@@ -73,6 +92,23 @@ const StageHistorySchema = new Schema<IStageHistory>(
   { _id: false }
 );
 
+const ActivityLogSchema = new Schema<IActivityLog>(
+  {
+    type: {
+      type: String,
+      enum: ['stage_changed', 'note_added', 'interview_scheduled', 'resume_uploaded', 'profile_updated'],
+      required: true
+    },
+    title: { type: String, required: true },
+    description: { type: String, trim: true },
+    fromStage: { type: String, default: null },
+    toStage: { type: String, default: null },
+    timestamp: { type: Date, default: () => new Date() },
+    metadata: { type: Schema.Types.Mixed, default: null }
+  },
+  { _id: false }
+);
+
 const CandidateSchema = new Schema<ICandidateDocument>(
   {
     name: {
@@ -98,6 +134,11 @@ const CandidateSchema = new Schema<ICandidateDocument>(
       trim: true,
       minlength: [2, 'Position must be at least 2 characters'],
       maxlength: [100, 'Position must not exceed 100 characters']
+    },
+    jobId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Job',
+      default: null
     },
     experienceYears: {
       type: Number,
@@ -149,6 +190,19 @@ const CandidateSchema = new Schema<ICandidateDocument>(
           to: 'Applied',
           changedAt: new Date(),
           notes: 'Initial application'
+        }
+      ]
+    },
+    activities: {
+      type: [ActivityLogSchema],
+      default: () => [
+        {
+          type: 'stage_changed',
+          title: 'Candidate Registered',
+          fromStage: null,
+          toStage: 'Applied',
+          timestamp: new Date(),
+          description: 'Candidate registered in ATS'
         }
       ]
     },

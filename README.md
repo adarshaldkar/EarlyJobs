@@ -6,7 +6,7 @@
 [![Express](https://img.shields.io/badge/Express-4.19-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB%20Atlas-8.3-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![Vitest](https://img.shields.io/badge/Vitest%20Tests-19%2F19%20Passing-green?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/Playwright%20E2E-12%2F12%20Passing-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright%20E2E-13%2F13%20Passing-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern, full-stack **Mini Applicant Tracking System (ATS)** built with **React 18, TypeScript, Express, and MongoDB Atlas**. Engineered from the ground up to provide recruiters with a centralized command center to manage the complete hiring lifecycle: job requisitions, candidate sourcing, resume reviews, 6-stage visual Kanban pipeline movement, scheduled interview loops, and structured evaluation feedback.
@@ -73,10 +73,13 @@ Recruiters never need to leave the ATS to inspect candidate CVs:
 
 ### 3. Visual 6-Stage Kanban Pipeline Board (`PipelineBoard.tsx`)
 * **6 Canonical Stages:** `Applied` ➔ `Screening` ➔ `Interview` ➔ `Offer` ➔ `Hired`, plus `Rejected`.
+* **Full 200-Candidate Capacity:** Supports loading up to the maximum demo capacity of 200 candidates in board mode without truncation.
 * **Actionable Cards:** Cards display candidate initials, 5-star ratings, job title, experience years, tags, and 1-click next-stage advancement buttons.
 * **Optimistic Updates:** Immediate UI stage transitions backed by optimistic concurrency locking (`409 Conflict` detection).
 
-### 4. Candidate Dossier & Chronological Audit Timeline (`CandidateDrawer.tsx`)
+### 4. Candidate Dossier, Profile Editing & Activity Timeline (`CandidateDrawer.tsx`)
+* **Complete Candidate Profile Editing:** Recruiters can update candidate name, position, phone, experience years, skills, location, headline, and internal notes directly from the drawer without recreating records.
+* **Distinct Activity History:** Granular event types (`stage_changed`, `note_added`, `interview_scheduled`, `resume_uploaded`, `profile_updated`) with distinct visual color badges and full timestamped audit logs.
 * **Stage Progression Stepper:** Interactive chevron stepper showing progression from intake to hire with emerald checkmarks for completed milestones.
 * **5-Star Recruiter Rating:** 1–5 star rating system with instant database sync.
 * **Recruitment Tags:** Tag chips (`Top Talent`, `Referral`, `Immediate Joiner`, `High Priority`, `Ex-FAANG`).

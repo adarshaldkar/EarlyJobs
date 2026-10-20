@@ -21,7 +21,9 @@ import {
   Download,
   UploadCloud,
   RefreshCw,
-  Globe
+  Globe,
+  Edit3,
+  Save
 } from 'lucide-react';
 import { Candidate, HIRING_STAGES, HiringStage } from '../../types';
 import { StageBadge } from '../../components/StageBadge';
@@ -106,8 +108,79 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // Profile edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    position: '',
+    phone: '',
+    experienceYears: 0,
+    skills: '',
+    location: '',
+    headline: '',
+    notes: ''
+  });
+
+  const handleStartEditing = () => {
+    if (!candidate) return;
+    setEditForm({
+      name: candidate.name || '',
+      position: candidate.position || '',
+      phone: candidate.phone || '',
+      experienceYears: candidate.experienceYears || 0,
+      skills: (candidate.skills || []).join(', '),
+      location: candidate.location || '',
+      headline: candidate.headline || '',
+      notes: candidate.notes || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveProfile = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!candidate) return;
+    if (!editForm.name.trim()) {
+      showToast('Candidate name is required', 'error');
+      return;
+    }
+    if (!editForm.position.trim()) {
+      showToast('Position is required', 'error');
+      return;
+    }
+
+    try {
+      setIsUpdatingProfile(true);
+      const skillsArray = editForm.skills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const updated = await updateCandidate(candidate._id, {
+        name: editForm.name.trim(),
+        position: editForm.position.trim(),
+        phone: editForm.phone.trim() || undefined,
+        experienceYears: Number(editForm.experienceYears) || 0,
+        skills: skillsArray,
+        location: editForm.location.trim() || undefined,
+        headline: editForm.headline.trim() || undefined,
+        notes: editForm.notes.trim() || undefined
+      });
+
+      setCandidate(updated);
+      onCandidateUpdated?.(updated);
+      setIsEditing(false);
+      showToast('Candidate profile updated successfully', 'success');
+      onRefresh();
+    } catch (err: any) {
+      showToast(getApiErrorMessage(err), 'error');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
   useEffect(() => {
     setCandidate(initialCandidate);
+    setIsEditing(false);
   }, [initialCandidate]);
 
   useEffect(() => {
@@ -304,14 +377,26 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              data-testid="close-drawer-btn"
-              className="text-ink-tertiary hover:text-ink-primary p-1 rounded transition-colors"
-              aria-label="Close drawer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => (isEditing ? setIsEditing(false) : handleStartEditing())}
+                data-testid="edit-profile-btn"
+                className="px-2.5 py-1 text-xs font-medium text-ink-secondary hover:text-ink-primary bg-surface hover:bg-stone-100 border border-subtle rounded flex items-center gap-1.5 transition-colors shadow-2xs"
+                title={isEditing ? 'Cancel editing' : 'Edit candidate profile'}
+              >
+                <Edit3 className="w-3.5 h-3.5 text-accent" />
+                <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                data-testid="close-drawer-btn"
+                className="text-ink-tertiary hover:text-ink-primary p-1 rounded transition-colors"
+                aria-label="Close drawer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Drawer Body */}
@@ -499,11 +584,173 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               </div>
             </div>
 
+            {/* Inline Profile Edit Form */}
+            {isEditing && (
+              <form
+                onSubmit={handleSaveProfile}
+                data-testid="edit-candidate-form"
+                className="p-4 rounded border-2 border-accent/30 bg-accent/5 space-y-3"
+              >
+                <div className="flex items-center justify-between border-b border-subtle pb-2">
+                  <span className="font-semibold text-ink-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Edit3 className="w-3.5 h-3.5 text-accent" />
+                    Edit Candidate Profile
+                  </span>
+                  <span className="text-[10px] text-ink-tertiary">Email cannot be modified</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-name"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                      required
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Target Position *
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-position"
+                      value={editForm.position}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, position: e.target.value }))}
+                      required
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-phone"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Experience (Years)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={50}
+                      data-testid="input-edit-experience"
+                      value={editForm.experienceYears}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, experienceYears: Number(e.target.value) }))}
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-location"
+                      value={editForm.location}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, location: e.target.value }))}
+                      placeholder="e.g. Bengaluru, Remote"
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Skills (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-skills"
+                      value={editForm.skills}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, skills: e.target.value }))}
+                      placeholder="React, TypeScript, Node.js, AWS"
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Professional Headline
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-edit-headline"
+                      value={editForm.headline}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, headline: e.target.value }))}
+                      placeholder="Senior Frontend Specialist with 5+ yrs experience"
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-[11px] font-medium text-ink-secondary mb-1">
+                      Internal Recruiter Notes
+                    </label>
+                    <textarea
+                      rows={2}
+                      data-testid="input-edit-notes"
+                      value={editForm.notes}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
+                      className="w-full px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-subtle">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    data-testid="cancel-edit-btn"
+                    className="px-3 py-1.5 text-xs text-ink-secondary hover:text-ink-primary bg-surface hover:bg-stone-100 rounded border border-subtle transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdatingProfile}
+                    data-testid="save-profile-btn"
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-accent hover:bg-accent-hover rounded flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isUpdatingProfile ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
             {/* Candidate Contact & Info */}
             <div className="space-y-3">
-              <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary">
-                Contact & Details
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary">
+                  Contact & Details
+                </h3>
+                {!isEditing && (
+                  <button
+                    onClick={handleStartEditing}
+                    data-testid="edit-details-btn"
+                    className="text-[11px] text-accent hover:underline font-medium flex items-center gap-1"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    Edit
+                  </button>
+                )}
+              </div>
               <div className="space-y-2 text-ink-secondary">
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-ink-tertiary" />
@@ -518,6 +765,12 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   <div className="flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 text-ink-tertiary" />
                     <span>{candidate.phone}</span>
+                  </div>
+                )}
+                {candidate.location && (
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-3.5 h-3.5 text-ink-tertiary" />
+                    <span>Location: {candidate.location}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2">
@@ -731,36 +984,97 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
             <div className="space-y-3 pt-2">
               <h3 className="font-semibold uppercase tracking-wider text-[11px] text-ink-tertiary flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                Stage History & Recruiter Audit Trail
+                Activity Timeline & Recruiter Audit Trail
               </h3>
               <div
                 data-testid="stage-history-timeline"
                 className="relative pl-4 space-y-4 before:absolute before:bottom-0 before:top-2 before:left-1.5 before:w-0.5 before:bg-subtle"
               >
-                {candidate.stageHistory.map((item, index) => (
-                  <div key={index} className="relative group">
-                    <div className="absolute -left-[19px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface bg-accent" />
-                    <div className="bg-surface border border-subtle rounded p-2.5 space-y-1">
-                      <div className="flex items-center justify-between font-medium text-ink-primary">
-                        <span>
-                          {item.from === item.to
-                            ? 'Recruiter Feedback Log'
-                            : item.from
-                            ? `${item.from} → ${item.to}`
-                            : `Initial: ${item.to}`}
-                        </span>
-                        <span className="text-[10px] text-ink-tertiary">
-                          {formatTimestamp(item.changedAt)}
-                        </span>
+                {candidate.activities && candidate.activities.length > 0 ? (
+                  candidate.activities.map((act, index) => {
+                    const isStageChange = act.type === 'stage_changed';
+                    const stageText = act.fromStage
+                      ? `${act.fromStage} → ${act.toStage}`
+                      : act.toStage
+                      ? `Initial: ${act.toStage}`
+                      : act.title;
+
+                    return (
+                      <div key={index} className="relative group">
+                        <div
+                          className={`absolute -left-[19px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface ${
+                            act.type === 'stage_changed'
+                              ? 'bg-accent'
+                              : act.type === 'resume_uploaded'
+                              ? 'bg-purple-600'
+                              : act.type === 'note_added'
+                              ? 'bg-amber-500'
+                              : act.type === 'interview_scheduled'
+                              ? 'bg-indigo-600'
+                              : 'bg-emerald-600'
+                          }`}
+                        />
+                        <div className="bg-surface border border-subtle rounded p-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between font-medium text-ink-primary">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider ${
+                                  act.type === 'stage_changed'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    : act.type === 'resume_uploaded'
+                                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                    : act.type === 'note_added'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : act.type === 'interview_scheduled'
+                                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                }`}
+                              >
+                                {act.type.replace('_', ' ')}
+                              </span>
+                              <span className="text-xs font-semibold">
+                                {isStageChange ? stageText : act.title}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-ink-tertiary">
+                              {formatTimestamp(act.timestamp)}
+                            </span>
+                          </div>
+                          {act.description && (
+                            <p className="text-[11px] text-ink-secondary leading-relaxed whitespace-pre-wrap">
+                              {act.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      {item.notes && (
-                        <p className="text-[11px] text-ink-secondary leading-relaxed whitespace-pre-wrap">
-                          {item.notes}
-                        </p>
-                      )}
+                    );
+                  })
+                ) : (
+                  candidate.stageHistory.map((item, index) => (
+                    <div key={index} className="relative group">
+                      <div className="absolute -left-[19px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface bg-accent" />
+                      <div className="bg-surface border border-subtle rounded p-2.5 space-y-1">
+                        <div className="flex items-center justify-between font-medium text-ink-primary">
+                          <span>
+                            {item.from === item.to
+                              ? 'Recruiter Feedback Log'
+                              : item.from
+                              ? `${item.from} → ${item.to}`
+                              : `Initial: ${item.to}`}
+                          </span>
+                          <span className="text-[10px] text-ink-tertiary">
+                            {formatTimestamp(item.changedAt)}
+                          </span>
+                        </div>
+                        {item.notes && (
+                          <p className="text-[11px] text-ink-secondary leading-relaxed whitespace-pre-wrap">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

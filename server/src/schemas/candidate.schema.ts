@@ -128,7 +128,16 @@ export const updateCandidateSchema = z
       .max(2000, 'Notes cannot exceed 2000 characters')
       .optional(),
     rating: z.number().min(0).max(5).optional(),
-    tags: z.array(z.string().trim().max(30)).max(10).optional()
+    tags: z.array(z.string().trim().max(30)).max(10).optional(),
+    jobId: z.string().trim().nullable().optional(),
+    headline: z.string().trim().max(200).optional(),
+    summary: z.string().trim().max(4000).optional(),
+    location: z.string().trim().max(100).optional(),
+    links: z.array(z.any()).optional(),
+    workExperience: z.array(z.any()).optional(),
+    education: z.array(z.any()).optional(),
+    projects: z.array(z.any()).optional(),
+    certifications: z.array(z.any()).optional()
   })
   .strict();
 
@@ -153,7 +162,7 @@ export const addNoteSchema = z.object({
 
 export const queryCandidatesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
+  limit: z.coerce.number().int().min(1).max(200).default(10),
   search: z.string().trim().optional(),
   position: z.string().trim().optional(),
   stage: z
