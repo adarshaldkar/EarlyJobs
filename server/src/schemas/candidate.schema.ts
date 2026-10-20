@@ -71,10 +71,10 @@ export const updateCandidateSchema = z
       .max(100, 'Name must not exceed 100 characters')
       .optional(),
     email: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .email('Invalid email address format')
+      .never({
+        invalid_type_error:
+          'Email address is immutable and cannot be modified after candidate creation'
+      })
       .optional(),
     phone: z
       .string()

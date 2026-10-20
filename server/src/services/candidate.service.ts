@@ -107,34 +107,29 @@ export class CandidateService {
   }
 
   /**
-   * Update candidate profile fields (allows email editing with uniqueness check)
+   * Update candidate profile fields (name, position, experience, skills, resumeUrl, notes).
+   * Email and stage are strictly immutable via this endpoint.
    */
   static async updateCandidate(
     id: string,
     data: UpdateCandidateInput
   ): Promise<ICandidateDocument> {
-    try {
-      const updated = await Candidate.findByIdAndUpdate(
-        id,
-        { $set: data },
-        { new: true, runValidators: true }
-      );
+    const safeData = { ...data };
+    delete (safeData as any).email;
+    delete (safeData as any).stage;
+    delete (safeData as any).stageHistory;
 
-      if (!updated) {
-        throw new ApiError(404, 'CANDIDATE_NOT_FOUND', 'Candidate not found.');
-      }
+    const updated = await Candidate.findByIdAndUpdate(
+      id,
+      { $set: safeData },
+      { new: true, runValidators: true }
+    );
 
-      return updated;
-    } catch (err: any) {
-      if (err.code === 11000) {
-        throw new ApiError(
-          409,
-          'DUPLICATE_EMAIL',
-          'A candidate with this email address already exists.'
-        );
-      }
-      throw err;
+    if (!updated) {
+      throw new ApiError(404, 'CANDIDATE_NOT_FOUND', 'Candidate not found.');
     }
+
+    return updated;
   }
 
   /**

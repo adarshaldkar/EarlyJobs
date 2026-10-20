@@ -62,6 +62,17 @@ describe('Candidate API & Business Logic Integration Tests', () => {
     expect(res2.body.success).toBe(false);
     expect(res2.body.error.code).toBe('DUPLICATE_EMAIL');
     expect(res2.body.error.message).toContain('already exists');
+
+    // Email is strictly immutable via PATCH
+    const candidateId = res1.body.data._id;
+    const patchEmailRes = await request(app)
+      .patch(`/api/candidates/${candidateId}`)
+      .send({ email: 'newemail@example.com' });
+
+    expect(patchEmailRes.status).toBe(400);
+    expect(patchEmailRes.body.success).toBe(false);
+    expect(patchEmailRes.body.error.code).toBe('VALIDATION_ERROR');
+    expect(JSON.stringify(patchEmailRes.body.error.details)).toContain('immutable');
   });
 
   // =========================================================================
