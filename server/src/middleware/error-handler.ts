@@ -1,0 +1,82 @@
+import { Request, Response, NextFunction } from 'express';
+import { ApiError } from '../utils/ApiError.js';
+import { ZodError } from 'zod';
+import { env } from '../config/env.js';
+
+export const errorHandler = (
+  err: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
+  // 1. Handled Operational ApiErrors
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      success: false,
+      error: {
+        code: err.code,
+        message: err.message,
+        details: err.details
+      }
+    });
+    return;
+  }
+
+  // 2. Zod Validation Errors
+  if (err instanceof ZodError) {
+    const formattedErrors = err.errors.map((e) => ({
+      field: e.path.join('.'),
+      message: e.message
+    }));
+
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid request data',
+        details: formattedErrors
+      }
+    });
+    return;
+  }
+
+  // 3. MongoDB Duplicate Key Error (E11000)
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern || {})[0] || 'field';
+    res.status(409).json({
+      success: false,
+      error: {
+        code: 'DUPLICATE_RESOURCE',
+        message: `A candidate with this ${field} already exists.`
+      }
+    });
+    return;
+  }
+
+  // 4. Mongoose CastError (Invalid ObjectId)
+  if (err.name === 'CastError' && err.kind === 'ObjectId') {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_ID',
+        message: `Invalid identifier format: ${err.value}`
+      }
+    });
+    return;
+  }
+
+  // 5. Unhandled / Internal Server Errors
+  console.error('\x1b[31m%s\x1b[0m', '💥 [server] Uncaught Exception:', err);
+
+  const message = env.NODE_ENV === 'production' 
+    ? 'Internal server error occurred' 
+    : err.message || 'Internal server error';
+
+  res.status(500).json({
+    success: false,
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message
+    }
+  });
+};

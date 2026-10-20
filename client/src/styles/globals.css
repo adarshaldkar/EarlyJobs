@@ -1,0 +1,31 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: #E7E5E4;
+  }
+  
+  body {
+    background-color: #FAFAF9;
+    color: #1C1917;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom crisp table and focus styling */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus outline for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #0F766E;
+  outline-offset: 2px;
+}
