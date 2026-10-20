@@ -14,8 +14,8 @@
 |---|---|---|---|
 | **Block 1** | 0:00 – 0:30 (30m) | Monorepo scaffolding, TypeScript configs, env validation, Mongoose connect & `/api/health`, Playwright E2E scaffold | ✅ Completed |
 | **Block 2** | 0:30 – 2:15 (1h 45m) | API endpoints, Zod schemas, single-query facet aggregation, 7 integration tests passing | ✅ Completed |
-| **Block 3** | 2:15 – 4:00 (1h 45m) | Candidate directory table, modal form, 409 stale-state toast, instant stage updater | ⏳ Ready to Execute |
-| **Block 4** | 4:00 – 4:45 (45m) | Recruiter dashboard KPI cards, Recharts pipeline chart, candidate audit drawer | ⏳ Pending |
+| **Block 3** | 2:15 – 4:00 (1h 45m) | Candidate directory table, modal form, 409 stale-state toast, instant stage updater | ✅ Completed |
+| **Block 4** | 4:00 – 4:45 (45m) | Recruiter dashboard KPI cards, Recharts pipeline chart, candidate audit drawer | ✅ Completed |
 | **Block 5** | 4:45 – 5:30 (45m) | Production deployment (Render backend + Vercel frontend), remote MongoDB Atlas check, CLI seeding, Playwright E2E verification | ⏳ Pending |
 | **Block 6** | 5:30 – 6:00 (30m) | Professional README with architecture diagrams, setup guide, and 60–90s demo video recording | ⏳ Pending |
 
