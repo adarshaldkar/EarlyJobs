@@ -4,7 +4,7 @@
 > **Milestone:** Data Layer, Business Logic Engine & Automated Verification  
 > **Target Timebox:** 1 Hour 45 Minutes  
 > **Working Directory:** `server/`  
-> **Status:** Draft / Ready for Approval 📋  
+> **Status:** Approved with Review Revisions 🚀  
 
 ---
 
@@ -14,20 +14,21 @@ Phase 2 builds the core business engine of the Mini ATS. It establishes the Mong
 
 ### Key Deliverables:
 1. **Candidate Data Model (`server/src/models/Candidate.ts`)**:
-   - Strict Mongoose schema with embedded `stageHistory` timeline.
+   - Strict Mongoose schema with embedded `stageHistory` timeline (`from`, `to`, `changedAt`, `notes?`).
    - Lean indexes: Unique `{ email: 1 }`, Compound `{ stage: 1, createdAt: -1 }`, and Single `{ createdAt: -1 }`.
-   - Index building via `Candidate.init()` called once during database boot.
+   - Index building via `Candidate.init()` called once during database boot and test setup.
 2. **Validation Layer (`server/src/schemas/candidate.schema.ts`)**:
    - Zod schemas validating candidate creation, updates, and stage transitions.
-   - Strict `http(s)://` regex validation for resume links (blocks `javascript:` and local file URIs).
+   - Robust `new URL()` parsing validating `http:` and `https:` protocols for resume links.
    - Normalized emails (`.trim().toLowerCase()`).
    - Query parameter validation with allowlisted `sortBy` fields (`createdAt`, `name`, `experienceYears`) and bounded pagination (`limit` capped at 50).
+   - Global ObjectId validator middleware covering all `:id` endpoints (`GET`, `PATCH`, `PATCH /stage`, `DELETE`).
 3. **Candidate Service & Controllers**:
-   - **`POST /api/candidates`**: Creates a candidate, enforces the 200-record cap, handles email collision (`409 DUPLICATE_EMAIL`).
+   - **`POST /api/candidates`**: Creates a candidate with initial `stageHistory` entry (`from: null, to: 'Applied'`), handles email collision (`409 DUPLICATE_EMAIL`).
    - **`GET /api/candidates`**: Paginated list with ReDoS-safe regex escaping for name/email search, stage filtering, and sorting.
    - **`GET /api/candidates/:id`**: Fetches single candidate with full stage history audit trail.
-   - **`PATCH /api/candidates/:id`**: Updates profile fields (name, position, experience, skills, notes, resumeUrl).
-   - **`PATCH /api/candidates/:id/stage`**: Optimistic concurrency control requiring `currentStage`. Returns `409 STALE_STATE` if changed concurrently, or `200 OK` (no-op) if already in target stage.
+   - **`PATCH /api/candidates/:id`**: Updates profile fields (including email correction with unique index collision handling).
+   - **`PATCH /api/candidates/:id/stage`**: Optimistic concurrency control requiring `currentStage`. Returns `409 STALE_STATE` if changed concurrently, or `200 OK` (no-op) if already in target stage and verified against DB.
    - **`DELETE /api/candidates/:id`**: Hard deletes candidate record.
 4. **Dashboard Summary Aggregation (`GET /api/dashboard/summary`)**:
    - High-performance single-query MongoDB `$facet` aggregation computing total candidates, stage breakdown, active pipeline count, and recent 5 applicants without N+1 count queries.
@@ -38,8 +39,8 @@ Phase 2 builds the core business engine of the Mini ATS. It establishes the Mong
    - Executed against `mongodb-memory-server` in Vitest:
      1. Duplicate email returns `409 Conflict` (`DUPLICATE_EMAIL`).
      2. Stale stage update returns `409 Conflict` (`STALE_STATE`).
-     3. Same-stage transition returns `200 OK` without appending duplicate history.
-     4. Malformed MongoDB ID returns `400 Bad Request` vs missing ID returns `404 Not Found`.
+     3. Same-stage transition returns `200 OK` without appending duplicate history when matching DB state; returns `409 STALE_STATE` if DB already changed.
+     4. Malformed MongoDB ID returns `400 Bad Request` vs missing ID returns `404 Not Found` across endpoints.
      5. Mathematical dashboard invariant: $\text{Total} === \sum \text{stageCounts}$.
 
 ---
@@ -47,23 +48,31 @@ Phase 2 builds the core business engine of the Mini ATS. It establishes the Mong
 ## 🏗️ 2. Architectural Decisions Frozen for Phase 2
 
 1. **Optimistic Concurrency Strategy**:
-   - The stage transition endpoint requires `{ currentStage, newStage }`.
-   - Execution uses an atomic `findOneAndUpdate({ _id: id, stage: currentStage }, { $set: { stage: newStage }, $push: { stageHistory: ... } }, { new: true })`.
-   - If the query returns `null`, the controller inspects whether the candidate exists:
-     - If candidate exists with a different stage $\rightarrow$ return `409 Conflict` with code `STALE_STATE`.
-     - If candidate does not exist $\rightarrow$ return `404 Not Found` with code `CANDIDATE_NOT_FOUND`.
-2. **Idempotent Same-Stage Transitions**:
-   - If `currentStage === newStage`, the service skips writing to `stageHistory` and immediately returns the unmodified candidate with `200 OK`.
-3. **Candidate Hard Cap Enforcement (200 Records)**:
-   - To safeguard demo database resources, `POST /api/candidates` verifies `Candidate.countDocuments() < 200`. If reached, it rejects with `400 Bad Request` and code `CAP_REACHED`.
+   - The stage transition endpoint requires `{ currentStage, newStage, notes? }`.
+   - If `currentStage === newStage`:
+     - Service reads candidate from DB. If candidate's actual `stage === currentStage`, it's an authentic no-op $\rightarrow$ return `200 OK` with zero new history entries.
+     - If candidate's actual stage is different from `currentStage`, client was stale $\rightarrow$ return `409 Conflict` (`STALE_STATE`).
+     - If candidate not found $\rightarrow$ return `404 Not Found`.
+   - If `currentStage !== newStage`:
+     - Execution uses an atomic `findOneAndUpdate({ _id: id, stage: currentStage }, { $set: { stage: newStage }, $push: { stageHistory: { from: currentStage, to: newStage, changedAt: new Date(), notes } } }, { new: true })`.
+     - If `null` returned, inspect whether candidate exists:
+       - If exists $\rightarrow$ return `409 Conflict` with code `STALE_STATE`.
+       - If not exists $\rightarrow$ return `404 Not Found` with code `CANDIDATE_NOT_FOUND`.
+2. **Explicit Audit Trail**:
+   - `stageHistory` entries explicitly track `{ from, to, changedAt, notes? }`.
+3. **Email Editable with Uniqueness Guard**:
+   - Candidates' emails can be corrected via `PATCH /api/candidates/:id`. Normalized with `.trim().toLowerCase()`.
+   - Duplicate key collision (E11000) caught and mapped to `409 DUPLICATE_EMAIL`.
 4. **ReDoS Defense in Search**:
    - Raw user input in `search` query parameter is sanitized using a regex escape helper before passing into MongoDB `$regex`:
      ```typescript
-     function escapeRegex(text: string): string {
+     export function escapeRegex(text: string): string {
        return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
      }
      ```
-5. **Standardized Response Envelope**:
+5. **Resume Link Validation**:
+   - Validated via standard `new URL(val)` ensuring `parsed.protocol === 'http:' || parsed.protocol === 'https:'`.
+6. **Standardized Response Envelope**:
    - Success: `{ "success": true, "data": ... }`
    - List Success: `{ "success": true, "data": { "items": [...], "pagination": { "total": 48, "page": 1, "limit": 10, "totalPages": 5 } } }`
    - Error: `{ "success": false, "error": { "code": "ERROR_CODE", "message": "Human-readable message" } }`
@@ -74,13 +83,15 @@ Phase 2 builds the core business engine of the Mini ATS. It establishes the Mong
 
 ### 3.1 Candidate Mongoose Schema
 ```typescript
-interface IStageHistory {
-  stage: 'Applied' | 'Screening' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
+export interface IStageHistory {
+  from: string | null;
+  to: string;
   changedAt: Date;
   notes?: string;
 }
 
-interface ICandidate {
+export interface ICandidate {
+  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   phone?: string;
@@ -108,7 +119,7 @@ interface ICandidate {
 - `position`: String, 2–100 characters, trimmed.
 - `experienceYears`: Integer between 0 and 50.
 - `skills`: Array of max 20 strings, each string trimmed and max 30 characters.
-- `resumeUrl`: Optional string matching `^https?:\/\/.+` (rejects `javascript:`, `data:`, `file:`).
+- `resumeUrl`: Optional string with valid `http:` or `https:` protocol.
 - `notes`: Optional string, max 2,000 characters.
 - `stage`: Enum matching `HIRING_STAGES`. Default: `'Applied'`.
 
@@ -124,27 +135,12 @@ interface ICandidate {
   - `stage`: Enum filter (`Applied` | `Screening` | `Interview` | `Offer` | `Hired` | `Rejected` | `All`)
   - `sortBy`: `'createdAt'` | `'name'` | `'experienceYears'` (default `'createdAt'`)
   - `sortOrder`: `'asc'` | `'desc'` (default `'desc'`)
-- **Response `200 OK`**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "items": [ ... ],
-      "pagination": {
-        "total": 35,
-        "page": 1,
-        "limit": 10,
-        "totalPages": 4
-      }
-    }
-  }
-  ```
 
 ### 2. `POST /api/candidates`
 - **Body**: `{ name, email, phone?, position, experienceYears, skills, resumeUrl?, notes?, stage? }`
 - **Responses**:
-  - `201 Created`: Returns newly created candidate document with initial `stageHistory` entry.
-  - `400 Bad Request`: Validation failure or cap reached (`CAP_REACHED`).
+  - `201 Created`: Returns newly created candidate document with initial `stageHistory` (`from: null, to: initialStage`).
+  - `400 Bad Request`: Validation failure.
   - `409 Conflict`: Duplicate email (`DUPLICATE_EMAIL`).
 
 ### 3. `GET /api/candidates/:id`
@@ -155,29 +151,29 @@ interface ICandidate {
   - `404 Not Found`: Candidate not found (`CANDIDATE_NOT_FOUND`).
 
 ### 4. `PATCH /api/candidates/:id`
-- **Body**: Partial candidate profile fields (`name`, `phone`, `position`, `experienceYears`, `skills`, `resumeUrl`, `notes`).
+- **Body**: Partial candidate profile fields (`name`, `email`, `phone`, `position`, `experienceYears`, `skills`, `resumeUrl`, `notes`).
 - **Responses**:
   - `200 OK`: Returns updated candidate document.
-  - `400 Bad Request`: Validation failure.
+  - `400 Bad Request`: Malformed ID or validation failure.
   - `404 Not Found`: Candidate not found.
-  - `409 Conflict`: If changing email to one already registered.
+  - `409 Conflict`: Duplicate email collision.
 
 ### 5. `PATCH /api/candidates/:id/stage`
 - **Body**: `{ "currentStage": "Screening", "newStage": "Interview", "notes": "Passed technical round" }`
 - **Responses**:
-  - `200 OK`: Stage updated atomically; new history item appended (or no-op if identical stage).
-  - `400 Bad Request`: Missing `currentStage` or invalid stage enum.
+  - `200 OK`: Stage updated atomically; new history item appended (`from: Screening, to: Interview`).
+  - `400 Bad Request`: Malformed ID, missing `currentStage`, or invalid stage enum.
   - `404 Not Found`: Candidate not found.
-  - `409 Conflict`: `STALE_STATE` (candidate is currently in another stage due to concurrent edit).
+  - `409 Conflict`: `STALE_STATE` (candidate is currently in another stage in the database).
 
 ### 6. `DELETE /api/candidates/:id`
 - **Responses**:
   - `200 OK`: `{ "success": true, "data": { "message": "Candidate deleted successfully" } }`
-  - `400 Bad Request`: Malformed ObjectId.
+  - `400 Bad Request`: Malformed ObjectId (`INVALID_ID`).
   - `404 Not Found`: Candidate not found.
 
 ### 7. `GET /api/dashboard/summary`
-- **Description**: Computes metrics via single `$facet` query.
+- **Description**: Computes metrics via single `$facet` query with in-memory zero-filling.
 - **Response `200 OK`**:
   ```json
   {
@@ -219,50 +215,24 @@ interface ICandidate {
 
 ---
 
-## 🗂️ 5. File Structure to be Created in Phase 2
+## 🧪 5. The 5 Automated Integration Tests Specification
 
-```text
-server/
-├── src/
-│   ├── models/
-│   │   └── Candidate.ts               # Mongoose schema, TypeScript interfaces, and indexes
-│   ├── schemas/
-│   │   └── candidate.schema.ts        # Zod request validators & query schemas
-│   ├── services/
-│   │   ├── candidate.service.ts       # Database access, regex escaping, cap check, atomic transitions
-│   │   └── dashboard.service.ts       # Single-query $facet aggregation with zero-fill logic
-│   ├── controllers/
-│   │   ├── candidate.controller.ts    # HTTP handlers, validation parsing, envelope formatting
-│   │   └── meta.controller.ts         # Stage metadata handler
-│   └── routes/
-│       ├── candidate.routes.ts        # /api/candidates routes
-│       ├── dashboard.routes.ts        # /api/dashboard/summary route
-│       └── meta.routes.ts             # /api/meta/stages route
-└── tests/
-    └── candidate.api.test.ts          # 5 Critical Integration Tests
-```
-
----
-
-## 🧪 6. The 5 Automated Integration Tests Specification
-
-The test suite will run in `server/tests/candidate.api.test.ts` via Vitest against an isolated in-memory MongoDB instance (`mongodb-memory-server`):
+The test suite runs in `server/tests/candidate.api.test.ts` via Vitest against an isolated in-memory MongoDB instance (`mongodb-memory-server`), ensuring `Candidate.init()` completes before testing:
 
 | Test # | Test Name | Invariant Checked | Expected Result |
 |---|---|---|---|
 | **Test 1** | Duplicate Email Rejection | Unique index and service layer conflict check | Second `POST` with `test@example.com` returns `409` with code `DUPLICATE_EMAIL`. |
-| **Test 2** | Concurrency Conflict Detection | Atomic conditional stage transition | Two simultaneous `Promise.all` PATCH stage requests with same `currentStage`: one succeeds `200`, one fails `409 STALE_STATE`. |
-| **Test 3** | Idempotent Same-Stage Transition | Zero duplicate history creation | PATCHing from `Applied` to `Applied` returns `200 OK` and does NOT grow `stageHistory`. |
-| **Test 4** | ObjectId Validation Boundary | Distinguishing syntax error from missing record | `GET /api/candidates/invalid-id` returns `400 INVALID_ID`; `GET /api/candidates/507f1f77bcf86cd799439011` returns `404 CANDIDATE_NOT_FOUND`. |
-| **Test 5** | Dashboard Aggregation Invariant | Mathematical consistency of metrics | After seeding varied candidates, verifies $\text{Total} === \sum \text{stageCounts}$ and $\text{Active Pipeline} === \text{Total} - (\text{Hired} + \text{Rejected})$. |
+| **Test 2** | Concurrency Conflict Detection | Atomic conditional stage transition | Two simultaneous `Promise.all` PATCH stage requests with same `currentStage`: exactly one succeeds `200`, one fails `409 STALE_STATE`. |
+| **Test 3** | Same-Stage Verification & Stale No-Op | Verifies persisted DB state vs client | Submitting same stage returns `200 OK` (0 new history) if DB has that stage; returns `409 STALE_STATE` if DB already transitioned. |
+| **Test 4** | ObjectId Validation Boundary Across Endpoints | Distinguishing syntax error from missing record | Any candidate endpoint with `invalid-id` returns `400 INVALID_ID`; non-existent valid ObjectId returns `404 CANDIDATE_NOT_FOUND`. |
+| **Test 5** | Dashboard Aggregation Invariant | Mathematical consistency of metrics | After seeding varied candidates, verifies $\text{Total} === \sum \text{stageCounts}$, all 6 stages appear (even with 0), and $\text{Active Pipeline} === \text{Total} - (\text{Hired} + \text{Rejected})$. |
 
 ---
 
-## 🛑 7. Phase 2 Exit Gates & Verification Checklist
+## 🛑 6. Phase 2 Exit Gates & Verification Checklist
 
-Before Phase 2 is marked complete and Phase 3 (Frontend Table & Forms) begins:
 - [ ] TypeScript compilation (`npm run build` in `server/`) succeeds with zero errors.
-- [ ] All 5 integration tests in `candidate.api.test.ts` plus the 2 existing health check tests pass in Vitest (`7/7 passed`).
+- [ ] All 5 integration tests in `candidate.api.test.ts` plus the 2 health check tests pass in Vitest (`7/7 passed`).
 - [ ] `Candidate.init()` builds indexes on MongoDB connection without throwing errors.
 - [ ] Atomic concurrency test passes reliably under parallel execution.
 - [ ] Clean git commit made with scope limited to backend engine and tests.
