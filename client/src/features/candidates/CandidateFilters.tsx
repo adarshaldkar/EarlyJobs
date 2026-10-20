@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, Plus, Filter } from 'lucide-react';
+import { Search, X, Plus, Filter, SlidersHorizontal } from 'lucide-react';
 import { HIRING_STAGES, HiringStage } from '../../types';
 
 interface CandidateFiltersProps {
@@ -7,6 +7,9 @@ interface CandidateFiltersProps {
   onSearchChange: (val: string) => void;
   selectedStage: string;
   onStageChange: (stage: string) => void;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   onOpenCreateModal: () => void;
   totalCandidates: number;
 }
@@ -16,6 +19,9 @@ export const CandidateFilters: React.FC<CandidateFiltersProps> = ({
   onSearchChange,
   selectedStage,
   onStageChange,
+  sortBy,
+  sortOrder,
+  onSortChange,
   onOpenCreateModal,
   totalCandidates
 }) => {
@@ -36,12 +42,13 @@ export const CandidateFilters: React.FC<CandidateFiltersProps> = ({
     return () => clearTimeout(timer);
   }, [localSearch, search, onSearchChange]);
 
-  const hasActiveFilters = Boolean(search || selectedStage);
+  const hasActiveFilters = Boolean(search || selectedStage || sortBy !== 'createdAt' || sortOrder !== 'desc');
 
   const handleReset = () => {
     setLocalSearch('');
     onSearchChange('');
     onStageChange('');
+    onSortChange('createdAt', 'desc');
   };
 
   return (
@@ -74,8 +81,30 @@ export const CandidateFilters: React.FC<CandidateFiltersProps> = ({
           )}
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Controls: Sort, Reset, Add */}
         <div className="flex items-center gap-2">
+          {/* Server-Side Sort Dropdown */}
+          <div className="flex items-center gap-1.5 text-xs text-ink-secondary">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-ink-tertiary" />
+            <select
+              value={`${sortBy}:${sortOrder}`}
+              onChange={(e) => {
+                const [newSortBy, newSortOrder] = e.target.value.split(':') as [string, 'asc' | 'desc'];
+                onSortChange(newSortBy, newSortOrder);
+              }}
+              data-testid="sort-select"
+              aria-label="Sort candidates by"
+              className="px-2.5 py-1.5 text-xs bg-surface border border-subtle rounded text-ink-primary focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value="createdAt:desc">Recently Added</option>
+              <option value="createdAt:asc">Oldest Added</option>
+              <option value="name:asc">Name (A–Z)</option>
+              <option value="name:desc">Name (Z–A)</option>
+              <option value="experienceYears:desc">Most Experience</option>
+              <option value="experienceYears:asc">Least Experience</option>
+            </select>
+          </div>
+
           {hasActiveFilters && (
             <button
               onClick={handleReset}

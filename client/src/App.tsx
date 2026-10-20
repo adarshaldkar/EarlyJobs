@@ -29,9 +29,11 @@ function AtsWorkspace() {
   // Navigation tab: 'directory' | 'dashboard'
   const [activeTab, setActiveTab] = useState<'directory' | 'dashboard'>('directory');
 
-  // Filter state
+  // Filter and sort state
   const [search, setSearch] = useState('');
   const [selectedStage, setSelectedStage] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -57,15 +59,15 @@ function AtsWorkspace() {
     isRefetching: isRefetchingCandidates,
     refetch: refetchCandidates
   } = useQuery({
-    queryKey: ['candidates', { page, limit, search, stage: selectedStage }],
+    queryKey: ['candidates', { page, limit, search, stage: selectedStage, sortBy, sortOrder }],
     queryFn: () =>
       fetchCandidates({
         page,
         limit,
         search: search || undefined,
         stage: selectedStage || undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortBy,
+        sortOrder
       })
   });
 
@@ -194,6 +196,13 @@ function AtsWorkspace() {
               selectedStage={selectedStage}
               onStageChange={(stg) => {
                 setSelectedStage(stg);
+                setPage(1);
+              }}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={(newSortBy, newSortOrder) => {
+                setSortBy(newSortBy);
+                setSortOrder(newSortOrder);
                 setPage(1);
               }}
               onOpenCreateModal={() => setIsModalOpen(true)}
